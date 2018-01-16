@@ -1,4 +1,4 @@
-var getUrlParameter = function getUrlParameter(sParam) {
+var params = function params(sParam) {
   var sPageURL = decodeURIComponent(window.location.search.substring(1)),
     sURLVariables = sPageURL.split('&'),
     sParameterName,
@@ -13,16 +13,29 @@ var getUrlParameter = function getUrlParameter(sParam) {
   }
 };
 
-if (!getUrlParameter('year') && !getUrlParameter('month')) {
+if (!params('year') && !params('month')) {
   var date = new Date;
   date = date.toColignyDate(true);
   document.location.search = '?year=' + date.year + '&month=' + date.month.name 
-                           + '&metonic=1';
+                                                 + '&metonic=1';
 }
 
 $(document).ready(function() {
-  document.getElementById('cal-title').textContent += getUrlParameter('month') 
+  document.getElementById('cal-title').textContent += params('month') 
                                                    + " " 
-                                                   + getUrlParameter('year');
-
+                                                   + params('year');
+ 
+ if (params('metonic') == 1) {
+    var current = new colignyYear(params('year'), true)
+    var monthStart = new colignyDate(params('year'), params('month'), 1, true)
+  } else {
+    var current = new colignyYear(params('year'))
+    var monthStart = new colignyDate(params('year'), params('month'), 1)
+  }
+  
+  var weekday = monthStart.toGregorianDate().getDay();
+  
+  for (var i = 0; i <= weekday; i++) {
+  	
+  }
 });
