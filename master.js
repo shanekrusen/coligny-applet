@@ -22,6 +22,7 @@ if (!params('year') && !params('month')) {
 }
 
 window.onload = function() {
+  window.scrollTo(0, 1);
   var obj = new colignyYear(Number(params('year')), Boolean(params('metonic')));
   document.getElementById('cal-title').textContent += obj.months[
                                                         params('month')].name
