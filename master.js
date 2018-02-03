@@ -14,28 +14,70 @@ var params = function params(sParam) {
 };
 
 if (!params('year') && !params('month')) {
-  var date = new Date;
+  var date = new Date();
+  date.setHours(0,0,0,0);
   date = date.toColignyDate(true);
-  document.location.search = '?year=' + date.year + '&month=' + date.month.name 
-                                                 + '&metonic=1';
+  document.location.search = '?year=' + date.year + 
+                             '&month=' + date.month.index + '&metonic=1';
 }
 
-$(document).ready(function() {
-  document.getElementById('cal-title').textContent += params('month') 
-                                                   + " " 
-                                                   + params('year');
- 
+window.onload = function() {
+  var obj = new colignyYear(Number(params('year')), Boolean(params('metonic')));
+  document.getElementById('cal-title').textContent += obj.months[
+                                                        params('month')].name
+                                                      + " "
+                                                      + params('year')
+                                                      + " BG";
+
  if (params('metonic') == 1) {
-    var current = new colignyYear(params('year'), true)
-    var monthStart = new colignyDate(params('year'), params('month'), 1, true)
+    var monthStart = new colignyDate(
+                      Number(params('year')), Number(params('month')), 1, true);
   } else {
-    var current = new colignyYear(params('year'))
-    var monthStart = new colignyDate(params('year'), params('month'), 1)
+    var monthStart = new colignyDate(
+                      Number(params('year')), Number(params('month')), 1)
   }
-  
+
   var weekday = monthStart.toGregorianDate().getDay();
+  console.log(weekday);
   
   for (var i = 0; i <= weekday; i++) {
-  	
+    var block = document.createElement("DIV");
+    var space = document.createTextNode("-");
+    var spaceTwo = document.createTextNode("---------------");
+    var linebreak = document.createElement("BR");
+    var small = document.createElement("small");
+    block.appendChild(space);
+    block.appendChild(linebreak);
+    small.appendChild(spaceTwo);
+    small.style.color = "white";
+    block.appendChild(small);
+    block.className = "calendar-block";
+    document.getElementById("cal-body").appendChild(block);
   }
-});
+
+  for (var i = 1; i <= obj.months[Number(params('month'))].days; i++) {
+    var block = document.createElement("DIV");
+    var space = document.createTextNode(i);
+    var small = document.createElement("SMALL");
+    var convert = new colignyDate(Number(params('year')), 
+                                  Number(params('month')),
+                                  i,
+                                  Boolean(params('metonic')));
+    var convert = document.createTextNode(
+                  convert.toGregorianDate().toISOString().substring(0, 10));
+    var linebreak = document.createElement("BR");
+    block.appendChild(space);
+    small.appendChild(convert);
+    block.appendChild(linebreak);
+    block.appendChild(small)
+    block.className = "calendar-block";
+    document.getElementById("cal-body").appendChild(block);
+  }
+};
+
+
+
+
+
+
+

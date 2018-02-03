@@ -29,6 +29,9 @@ body {
 	margin: 0px;
 	padding: 0px;
 	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 
 .cal-head {
@@ -47,19 +50,28 @@ body {
 	padding: 0px;
 }
 
-.cal-body {
-	width: 100%;
+#cal-body {
+	max-width: 100%;
+	min-width: 100%
 	display: flex;
+	flex-grow: 1;
 }
 
 .cal-week {
 	width: 100%;
 	display: flex;
+	height: auto;
 }
 
 .calendar-block {
-	width: calc(100% / 7);
-	min-width: auto;
+	max-width: 14.2857142857%;
+	min-width: 14.2857142857%;
+	margin:0px;
+	display: inline-block;
+	text-align: right;
+	min-height: 16.666666666666668%;
+	max-height: 16.666666666666668%;
+	padding: 0px;
 }
 
 .calendar-block:hover {
@@ -67,7 +79,24 @@ body {
 	z-index: 6;
 }
 
+.week-header:hover {
+	outline: 2px solid #5787d7;
+	z-index: 6;
+}
+
 .week-header {
 	text-align: center;
 	background-color: #f0f0f0;
+	max-width: 14.2857142857%;
+	min-width: 14.2857142857%;
+	border: 0px;
+	display: inline-block;
+}
+
+.back-arrow {
+	cursor: pointer;
+}
+
+.for-arrow {
+	cursor: pointer;
 }

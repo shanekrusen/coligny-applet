@@ -1,12 +1,32 @@
-function colignyMonth(name, days) {
-  this.name = name;
-  this.days = days;
+var _colignyErrors = {
+  "argNotSpecified":new Error ("Missing arguments."),
+  "wrongParamType":new Error ("Argument(s) of wrong data type."),
+  "invalidMonth":new Error ("Invalid Month number specified."),
+  "invalidDays":new Error("Days specified outside possible day range."),
+  "invalidCycles":new Error("Cannot compare dates of different cycle types.")
 }
 
-function colignyYear(year, isMetonic) {
-  if (typeof isMetonic == "null") { isMetonic = false; }
+function colignyMonth(name, days) {
+  if (typeof (name || days) == 'undefined') {
+    throw _colignyErrors["argNotSpecified"];
+  } else if (typeof name != "string" || typeof days != "number") {
+    throw _colignyErrors["wrongParamType"];
+  }
+
+  this.name = name;
+  this.days = days;
+  this.index = 0;
+}
+
+function colignyYear(year, metonic) {
+  if (typeof year != "number") {
+    throw _colignyErrors["wrongParamType"];
+  } else if (typeof metonic == "undefined") {
+    metonic = false;
+  }
+
+  this.metonic = metonic;
   this.year = year;
-  this.isMetonic = isMetonic;
   this.months = [
     new colignyMonth("Samonios", 30),
     new colignyMonth("Dumanios", 29),
@@ -19,308 +39,550 @@ function colignyYear(year, isMetonic) {
     new colignyMonth("Elembi", 29),
     new colignyMonth("Aedrinni", 30),
     new colignyMonth("Cantlos", 29)
-  ]; 
+  ];
 
-  if ((this.isMetonic && this.year < 4999) || 
-      (!this.isMetonic && this.year < 4998)) 
-  {
-    var isEarly = true;
-  } else {
-    var isEarly = false;
+  var metMap = {
+    '-0':2,
+    '-18':3,
+    '-17':4,
+    '-16':5,
+    '-15':1,
+    '-14':2,
+    '-13':3,
+    '-12':4,
+    '-11':5,
+    '-10':1,
+    '-9':2,
+    '-8':3,
+    '-7':4,
+    '-6':5,
+    '-5':1,
+    '-4':2,
+    '-3':3,
+    '-2':4,
+    '-1':5,
+    0:2,
+    1:3,
+    2:4,
+    3:5,
+    4:1,
+    5:2,
+    6:3,
+    7:4,
+    8:5,
+    9:1,
+    10:2,
+    11:3,
+    12:4,
+    13:5,
+    14:1,
+    15:2,
+    16:3,
+    17:4,
+    18:5
   }
 
-  if (this.isMetonic) {
-    if (isEarly) {
-      this.yearDiff = 4999 - this.year;
-    } else {
-      this.yearDiff = this.year - 4999;
-    }
-  } else {
-    if (isEarly) {
-      this.yearDiff = 4998 - this.year;
-    } else {
-      this.yearDiff = this.year - 4998;
-    }
+  var satMap = {
+    '-0':1,
+    '-4':2,
+    '-3':3,
+    '-2':4,
+    '-1':5,
+    0:1,
+    1:2,
+    2:3,
+    3:4,
+    4:5
   }
 
-  // Populate optional months
-  if (!this.isMetonic) {
-    // Populate Equos for Sat. cycle
-    if  (isEarly && (this.yearDiff % 5 === 1 || this.yearDiff % 5 === 0)) {
-      this.months.splice(8, 0, new colignyMonth("Equos", 30));
-    }  else if (!isEarly && (this.yearDiff % 5 === 0 || this.yearDiff % 5 === 4)) {
-      this.months.splice(8, 0, new colignyMonth("Equos", 30));
-    } else {
-      this.months.splice(8, 0, new colignyMonth("Equos", 29));
-    }
-
-    // Populate Quimonios for Sat. cycle
-    if (this.yearDiff % 5 === 0) {
-      this.months.splice(0, 0, new colignyMonth("Quimonios", 29));
-    }
-
-    // Populate Rantaranos for Sat. cycle
-    if (isEarly) {
-      if (this.yearDiff % 5 === 3 && this.yearDiff % 30 !== 3) {
-        this.months.splice(6, 0, new colignyMonth("Rantaranos", 30));
-      }
-    } else {
-      if (this.yearDiff % 5 === 2 && this.yearDiff % 30 !== 27) {
-        this.months.splice(6, 0, new colignyMonth("Rantaranos", 30));
-      }
-    }
+  if (this.metonic) {
+    this.ident = metMap[(this.year - 4999) % 19];
   } else {
-    // Function to see if year in question matches specific cases
-    // for month placement, since metonic cycle checks must be done
-    // on 19 year cycle, and "% 5" can't be used.
-    function testCases (cases) {
-      for (var i = 0; i < cases.length; i++) {
-        if (this.yearDiff % 19 === cases[i]) {
-          return true
-        }
-      }
-      return false
-    }
-    
-    // Populate Equos for Met. cycle
-    if (isEarly) {
-      if (testCases([1, 5, 6, 10, 11, 15, 16])) {
-        this.months.splice(8, 0, new colignyMonth("Equos", 30));
-      } else {
-        this.months.splice(8, 0, new colignyMonth("Equos", 29));
-      }
-    } else if (testCases([3, 4, 8, 9, 13, 14, 18])) {
-      this.months.splice(8, 0, new colignyMonth("Equos", 30));
-    } else {
-      this.months.splice(8, 0, new colignyMonth("Equos", 29));
-    }
-    
-    // Populate Quimonios for Met. cycle
-    if (isEarly) {
-      if (testCases([5, 10, 15])) {
-        this.months.splice(0, 0, new colignyMonth("Quimonios", 29));
-      }
-    } else if (testCases([4, 9, 14])) {
-      this.months.splice(0, 0, new colignyMonth("Quimonios", 29));
-    }
+    this.ident = satMap[(this.year - 4998) % 5];
+  }
 
-    // Populate Rantaranos for Met. cycle
-    if (isEarly) {
-      if (testCases([3, 8, 13, 18])) {
+  
+  switch (this.ident) {
+    case 1:
+      this.months.splice(0, 0, new colignyMonth("Quimonios", 29));
+      this.months.splice(8, 0, new colignyMonth("Equos", 30));
+      break;
+    case 3:
+      this.months.splice(8, 0, new colignyMonth("Equos", 29));
+      if (this.year - 4998 % 30 !== (27 || -3) || (this.metonic)) {
         this.months.splice(6, 0, new colignyMonth("Rantaranos", 30));
       }
-    } else if (testCases([1, 6, 11, 16])) {
+      break;
+    case 5:
+      this.months.splice(8, 0, new colignyMonth("Equos", 30));
+      break;
+    default:
+      this.months.splice(8, 0, new colignyMonth("Equos", 29));
+      break;
+  }
+
+  if (this.metonic) {
+    if (Math.abs(this.year - 4999) >= 60.97 &&
+        Math.abs(this.year - 4999) % 60.97 <= 5 &&
+        this.ident === 5) {
+      this.months[8].days = 29;
+    }
+
+    if (Math.abs(this.year - 4999) > 6568.62 &&
+        Math.abs(this.year - 4999) % 6568.62 <= 5 &&
+        this.ident === 3) {
+      this.months.splice(6, 1);
+    } 
+  } else {
+    if (Math.abs(this.year - 4998) >= 197.97 &&
+        Math.abs(this.year - 4998) % 197.97 <= 5 &&
+        this.ident === 5) {
+      this.months[8].days = 29;
+    }
+
+    if (Math.abs(this.year - 4998) > 635.04 &&
+        Math.abs(this.year - 4998) % 635.04 <= 30 &&
+        this.year - 4998 % 30 === (27 || -3)) {
       this.months.splice(6, 0, new colignyMonth("Rantaranos", 30));
     }
   }
 
-  if (!this.isMetonic) {
-    // Saturn Longcycle Equos Correction
-    if (this.isEarly) {
-      if ((this.yearDiff > 197.97) &&
-         (this.yearDiff % 197.97 <= 5) && 
-         (this.yearDiff % 5 === 1))
-      {
-        for (var i = 0; i < this.months.length; i++) {
-          if (this.months[i].name === "Equos") {
-            this.months[i].days -= 1;
-          }
-        }
-      }
-    } else {
-      if ((this.yearDiff > 197.97) &&
-         (this.yearDiff % 197.97 <= 5) && 
-         (this.yearDiff % 5 === 4))
-      {
-        for (var i = 0; i < this.months.length; i++) {
-          if (this.months[i].name === "Equos") {
-            this.months[i].days -= 1;
-          }
-        }
-      }
-    }
-    // Saturn Longcycle Rantaranos Correction
-    if (this.isEarly) {
-      if ((this.yearDiff > 635.04) &&
-         (this.yearDiff % 635.04 <= 30) &&
-         (this.yearDiff % 30 === 3))
-      {
-        this.months.splice(6, 0, new colignyMonth("Rantaranos", 30));
-      }
-    } else {
-      if ((this.yearDiff > 635.04) && 
-         (this.yearDiff % 635.04 <= 30) &&
-         (this.yearDiff % 30 === 27))
-      {
-        this.months.splice(6, 0, new colignyMonth("Rantaranos", 30));
-      }
-    }
-  } else {
-    // Metonic Longcycle Equos Correction
-    if (this.isEarly) {
-      if ((this.yearDiff > 60.97) &&
-         (this.yearDiff % 60.97 <= 19) &&
-         (this.yearDiff % 19 === 15))
-      {
-        for (var i = 0; i < this.months.length; i++) {
-          if (this.months[i].name === "Equos") {
-            this.months[i].days -= 1;
-          }
-        }
-      }
-    } else {
-      if ((this.yearDiff > 60.97) &&
-         (this.yearDiff % 60.97 <= 19) &&
-         (this.yearDiff % 19 === 3))
-      {
-        for (var i = 0; i < this.months.length; i++) {
-          if (this.months[i].name === "Equos") {
-            this.months[i].days -= 1;
-          }
-        }
-      }
-    }
-    // Metonic Longcycle Rantaranos Correction
-    if (this.isEarly) {
-      if ((this.yearDiff > 6568.62) &&
-         (this.yearDiff % 6568.62 <= 19) &&
-         (this.yearDiff % 19 === 1))
-      {
-        this.months.splice(6, 1);
-      }
-    } else {
-      if ((this.yearDiff > 6568.62) &&
-         (this.yearDiff % 6568.62 <= 19) &&
-         (this.yearDiff % 19 === 17))
-      {
-        this.months.splice(6, 1);
-      }
-    }
-  } 
+  this.yearDays = 0;
+
+  for (i = 0; i < this.months.length; i++) {
+    this.months[i].index = i;
+    this.yearDays += this.months[i].days;
+  }
 }
 
-function colignyDate(year, month, day, isMetonic) {
-  if (typeof isMetonic === "undefined") { isMetonic = false; }
+function colignyDate(year, month, day, metonic) {
+  if (typeof (year || month || day) != "number") {
+    throw _colignyErrors["wrongParamType"];
+  } else if (typeof metonic == "undefined") {
+    metonic = false;
+  }
+
+  this.metonic = metonic;
   this.year = year;
   this.day = day;
-  this.isMetonic = isMetonic
-
-  if (this.isMetonic) {
-    this.startYear = 4999;
-    this.startDate = new Date(1999, 4, 22);
-    this.months = new colignyYear(year, true).months;
-    this.yearDiff = new colignyYear(year, true).yearDiff;
+  this.fullYear = new colignyYear(year, metonic);
+  if (month >= this.fullYear.months.length || month < 0) {
+    throw _colignyErrors["invalidMonth"];
   } else {
-    this.startYear = 4998;
-    this.startDate = new Date(1998, 4, 3);
-    this.months = new colignyYear(year).months;
-    this.yearDiff = new colignyYear(year).yearDiff;
+    this.month = this.fullYear.months[month];
   }
 
-  if (year > this.startYear) {
-    this.isEarly = false;
-  } else {
-    this.isEarly = true;
-  }
+  this.yearToBegin = 0;
 
-  var monthCheck = 0;
-
-  for (var i = 0; i < this.months.length; i++) {
-    if (this.months[i].name === month) {
-      this.month = this.months[i];
-      monthCheck = 1;
-      break;
+  for (var i = 0; i <= this.month.index; i++) {
+    if (i === this.month.index) {
+      this.yearToBegin += this.day;
+    } else {
+      this.yearToBegin += this.fullYear.months[i].days;
     }
   }
 
-  if (monthCheck === 0) {
-    throw new Error ("Month specified does not exist in the specified year.");
-  }
-
-  if ((this.day) > this.month.days) {
-    throw new Error ("Day specified outside of date range for this month");
-  }
+  this.yearToEnd = this.fullYear.yearDays - this.yearToBegin;
 }
 
-colignyDate.prototype.calcDays = function(add) {
-  this.day += add
-
-  while (this.day > this.month.days) {
-    if (this.months[this.months.indexOf(this.month) + 1] == null) {
-      this.day = this.day - this.month.days;
-      this.year += 1;
-      if (this.isMetonic) {
-        this.months = new colignyYear(this.year, true).months;
-      } else {
-        this.months = new colignyYear(this.year).months;
-      }
-      this.month = this.months[0];
-    } else {
-      this.day = this.day - this.month.days
-      this.month = this.months[this.months.indexOf(this.month) + 1]
-    }
+colignyDate.prototype.string = function(cyc) {
+  if (typeof cyc == "undefined") {
+    cyc = false;
   }
 
-  while (this.day < 1) {
-    if (this.month === this.months[0]) {
-      this.year -= 1;
-      if (this.isMetonic) {
-        this.months = new colignyYear(this.year, true).months;
-      } else {
-        this.months = new colignyYear(this.year).months;
-      }
-      this.month = this.months[this.months.length - 1];
-      this.day = this.month.days + this.day;
-    } else {
-      this.month = this.months[months.indexOf(this.month) - 1];
-      this.day = this.month.days + this.day;
-    }
-  }
-  return this
-}
-
-colignyDate.prototype.toGregorianDate = function() {
-  if (this.isMetonic) {
-    var start = new colignyDate(4999, "Samonios", 1, true);
+  if (cyc) {
+    return this.month.name + " " + this.day + " " + this.fullYear.ident;
   } else {
-    var start = new colignyDate(4998, "Quimonios", 1);
+    return this.month.name + " " + this.day + ", " + this.year;
   }
-
-  var dayCount = 0;
-
-  if (this.year < this.startYear) {
-    while (true)
-    {
-      if (this.month.name === start.month.name &&
-           this.day === start.day &&
-           this.year === start.year) 
-      {     
-        break;
-      }
-      this.calcDays(1);
-      dayCount -= 1;
-    }
-  } else {
-    while (true)
-    {
-      if (this.month.name === start.month.name &&
-           this.day === start.day &&
-           this.year === start.year)
-      {
-        break;
-      }
-      start.calcDays(1);
-      dayCount += 1;
-    }
-  }
-
-  var output = new Date(this.startDate.getTime());
-  output.setDate(this.startDate.getDate() + dayCount);
-  return output;
 }
 
 colignyDate.prototype.inscription = function() {
   var inscrips = {
+    "Quimonios 1 1":["MD SIMIUIS GIAMONI", "IVOS"],
+    "Quimonios 2 1":["MD SIMIUISONNA", "IVOS"],
+    "Quimonios 3 1":["MD SIMIUIS EQUI", "IVOS"],
+    "Quimonios 4 1":["D ELEMBI"],
+    "Quimonios 5 1":["D EDRINNI AMB"],
+    "Quimonios 6 1":["D CANTLOS"],
+    "Quimonios 7 1":["MD PRINI LOUD SAMONI","TINA D[---","NE[---","?I[---"],
+    "Quimonios 8 1":["D SAMON DUMANI", "M[---"],
+    "Quimonios 9 1":["MD DUMAN RIVRI", "EDVTIO[---", "MV[---"],
+    "Quimonios 10 1":["D ANAGANT"],
+    "Quimonios 11 1":["(IIT) D AMB OGRON"],
+    "Quimonios 12 1":["(IIT) MD CUTIOS"],
+    "Quimonios 13 1":["(TII) D GIAMON"],
+    "Quimonios 14 1":["NSDS/D EQVI SIMIUIS"],
+    "Quimonios 15 1":["MD SIMIUIS EQVI"],
+    "Quimonios 16 1":["MD EDRINI ELEMB"],
+    "Quimonios 17 1":["D ELEMB EDRINI"],
+    "Quimonios 18 1":["(IIT) D CANTLI AMB RIXRI"],
+    "Quimonios 19 1":["(TII) MD SAMON"],
+    "Quimonios 20 1":["D DUMANNI AMB ?RI"],
+    "Quimonios 21 1":["IIT MD RIVRI"],
+    "Quimonios 22 1":["NSDS SAMONI ANAGAN", "INNIS R [----]TIT"],
+    "Quimonios 23 1":["NSDS SAM OGRON QVTIO", "INNIS R"],
+    "Quimonios 24 1":["N(SDS) SAM QVTIO INNIS R", "ED[----", "SV[----"],
+    "Quimonios 25 1":["(TII) D GIAMON"],
+    "Quimonios 26 1":["D AMB SIMIUS", "IVOS"],
+    "Quimonios 27 1":["(ITI) D EQVI", "IVOS"],
+    "Quimonios 28 1":["(ITI) D AMB ELEMB", "IVOS"],
+    "Quimonios 29 1":["MD EDRINNI", "IVOS"],
+    "Samonios 1 1":["D DUMANNI", "IVOS"],
+    "Samonios 2 1":["MD", "IVOS"],
+    "Samonios 3 1":["TII D EXINGI DUM", "IVOS"],
+    "Samonios 4 1":["MD", "IVOS"],
+    "Samonios 5 1":["D AMB * RIX * RI"],
+    "Samonios 6 1":["MD"],
+    "Samonios 7 1":["N DUMAN INIS R"],
+    "Samonios 8 1":["MD SAMONI"],
+    "Samonios 9 1":["D DUMANI"],
+    "Samonios 10 1":["MD"],
+    "Samonios 11 1":["D AMB"],
+    "Samonios 12 1":["MD [D M]"],
+    "Samonios 13 1":["MD [D M]"],
+    "Samonios 14 1":["MD [D M]"],
+    "Samonios 15 1":["MD [D M]"],
+    "Samonios 16 1":["D DUMANNI"],
+    "Samonios 17 1":["MD TRINO SAM SINDIV", "(IVOS)"],
+    "Samonios 18 1":["D AMB"],
+    "Samonios 19 1":["MD"],
+    "Samonios 20 1":["D AMB"],
+    "Samonios 21 1":["IIT MD"],
+    "Samonios 22 1":["D DUMANI AMB"],
+    "Samonios 23 1":["TII D DUMANI"],
+    "Samonios 24 1":["N DUM INIS R"],
+    "Samonios 25 1":["MD"],
+    "Samonios 26 1":["D AMB"],
+    "Samonios 27 1":["MD"],
+    "Samonios 28 1":["D AMB"],
+    "Samonios 29 1":["MD"],
+    "Samonios 30 1":["D AMB"],
+    "Dumanios 1 1":["SAMON PRINI LOUD"],
+    "Dumanios 2 1":["D"],
+    "Dumanios 3 1":["D"],
+    "Dumanios 4 1":["D"],
+    "Dumanios 5 1":["PRINI LAG AMB"],
+    "Dumanios 6 1":["ITI D"],
+    "Dumanios 7 1":["MD RIVRI"],
+    "Dumanios 8 1":["MD RIVRI"],
+    "Dumanios 9 1":["MD RIVRI"],
+    "Dumanios 10 1":["D"],
+    "Dumanios 11 1":["N INIS R"],
+    "Dumanios 12 1":["ITI D"],
+    "Dumanios 13 1":["IIT D", "IVOS"],
+    "Dumanios 14 1":["D", "IVOS"],
+    "Dumanios 15 1":["D", "IVOS"],
+    "Dumanios 16 1":["MD SAMONI", "IVOS"],
+    "Dumanios 17 1":["MD SAMONI", "IVOS"],
+    "Dumanios 18 1":["ITI D AMB", "IVOS"],
+    "Dumanios 19 1":["IIT D", "IVOS"],
+    "Dumanios 20 1":["D AMB", "IVOS"],
+    "Dumanios 21 1":["IIT D"],
+    "Dumanios 22 1":["D RIVRI AMB"],
+    "Dumanios 23 1":["D PETIUX RIV ANAG"],
+    "Dumanios 24 1":["D AMB RIVRI"],
+    "Dumanios 25 1":["IIT D"],
+    "Dumanios 26 1":["D AMB", "[IVOS]"],
+    "Dumanios 27 1":["N INIS R", "[IVOS]"],
+    "Dumanios 28 1":["D AMB", "IVOS"],
+    "Dumanios 29 1":["NSDS", "IVOS"],
+    "Riuros 1 1":["D ANAGANT EXO", "IVOS"],
+    "Riuros 2 1":["PRINI LOUD", "IVOS"],
+    "Riuros 3 1":["MD", "IVOS"],
+    "Riuros 4 1":["(MD) BRIGIOMU RIVRI"],
+    "Riuros 5 1":["N INIS R"],
+    "Riuros 6 1":["MD"],
+    "Riuros 7 1":["ITI D ANAGANT"],
+    "Riuros 8 1":["IIT D ANAGANT"],
+    "Riuros 9 1":["D ANAGANT"],
+    "Riuros 10 1":["MD"],
+    "Riuros 11 1":["N INIS R"],
+    "Riuros 12 1":["MD"],
+    "Riuros 13 1":["DEC/VOR LUG RIVRI"],
+    "Riuros 14 1":["MD"],
+    "Riuros 15 1":["MD"],
+    "Riuros 16 1":["MD"],
+    "Riuros 17 1":["MD"],
+    "Riuros 18 1":["D AMB"],
+    "Riuros 19 1":["MD"],
+    "Riuros 20 1":["D AMB"],
+    "Riuros 21 1":["IIT MD"],
+    "Riuros 22 1":["N ANAG INIS R"],
+    "Riuros 23 1":["D ANAG"],
+    "Riuros 24 1":["N ANAG INIS R"],
+    "Riuros 25 1":["MD PETIUX RIVRI"],
+    "Riuros 26 1":["D AMB"],
+    "Riuros 27 1":["MD"],
+    "Riuros 28 1":["D AMB"],
+    "Riuros 29 1":["MD"],
+    "Riuros 30 1":["D AMB"],
+    "Anagantios 1 1":["MD RIVRI"],
+    "Anagantios 2 1":["D"],
+    "Anagantios 3 1":["D"],
+    "Anagantios 4 1":["MD OGIOUMU RIVRI"],
+    "Anagantios 5 1":["N INIS R"],
+    "Anagantios 6 1":["PRINI LAG"],
+    "Anagantios 7 1":["MD OGRONI"],
+    "Anagantios 8 1":["MD OGRONI"],
+    "Anagantios 9 1":["MD OGRONI"],
+    "Anagantios 10 1":["D"],
+    "Anagantios 11 1":["D AMB"],
+    "Anagantios 12 1":["TII D"],
+    "Anagantios 13 1":["ITI D"],
+    "Anagantios 14 1":["IIT D"],
+    "Anagantios 15 1":["D"],
+    "Anagantios 16 1":["D"],
+    "Anagantios 17 1":["D"],
+    "Anagantios 18 1":["TII D AMB"],
+    "Anagantios 19 1":["ITI D"],
+    "Anagantios 20 1":["IIT D AMB"],
+    "Anagantios 21 1":["N INIS R"],
+    "Anagantios 22 1":["D AMB OGRON"],
+    "Anagantios 23 1":["MD CVTI OGRON"],
+    "Anagantios 24 1":["D OGRON AMB"],
+    "Anagantios 25 1":["ITI D"],
+    "Anagantios 26 1":["IIT D AMB"],
+    "Anagantios 27 1":["D"],
+    "Anagantios 28 1":["D AMB"],
+    "Anagantios 29 1":["D"],
+    "Ogronios 1 1":["MD"],
+    "Ogronios 2 1":["MD"],
+    "Ogronios 3 1":["PRINI LOUD"],
+    "Ogronios 4 1":["MD"],
+    "Ogronios 5 1":["N INIS R"],
+    "Ogronios 6 1":["MD"],
+    "Ogronios 7 1":["MD CVTI"],
+    "Ogronios 8 1":["MD CVTI"],
+    "Ogronios 9 1":["N CVTI INIS R"],
+    "Ogronios 10 1":["MD"],
+    "Ogronios 11 1":["D AMB"],
+    "Ogronios 12 1":["MD"],
+    "Ogronios 13 1":["MD"],
+    "Ogronios 14 1":["MD"],
+    "Ogronios 15 1":["MD"],
+    "Ogronios 16 1":["MD CVTI"],
+    "Ogronios 17 1":["MD CVTI"],
+    "Ogronios 18 1":["D CVTI AMB"],
+    "Ogronios 19 1":["MD"],
+    "Ogronios 20 1":["D AMB"],
+    "Ogronios 21 1":["IIT MD"],
+    "Ogronios 22 1":["D AMB QVTI"],
+    "Ogronios 23 1":["MD OGRON QVTI"],
+    "Ogronios 24 1":["D AMB QVTI"],
+    "Ogronios 25 1":["MD"],
+    "Ogronios 26 1":["D AMB"],
+    "Ogronios 27 1":["N INIS R"],
+    "Ogronios 28 1":["D AMB", "IVOS"],
+    "Ogronios 29 1":["MD", "IVOS"],
+    "Ogronios 30 1":["D AMB", "IVOS"],
+    "Cutios 1 1":["MD", "IVOS"],
+    "Cutios 2 1":["MD", "IVOS"],
+    "Cutios 3 1":["MD", "IVOS"],
+    "Cutios 4 1":["PRINI LOUD"],
+    "Cutios 5 1":["N INIS R"],
+    "Cutios 6 1":["MD"],
+    "Cutios 7 1":["GIAM PRINI LAG"],
+    "Cutios 8 1":["D GIAM"],
+    "Cutios 9 1":["N GIAM INIS R"],
+    "Cutios 10 1":["MD"],
+    "Cutios 11 1":["D AMB"],
+    "Cutios 12 1":["MD"],
+    "Cutios 13 1":["MD"],
+    "Cutios 14 1":["MD"],
+    "Cutios 15 1":["MD"],
+    "Cutios 16 1":["MD OGRON"],
+    "Cutios 17 1":["MD OGRON"],
+    "Cutios 18 1":["D OGRON AMB"],
+    "Cutios 19 1":["N INIS R"],
+    "Cutios 20 1":["D AMB"],
+    "Cutios 21 1":["N INIS R"],
+    "Cutios 22 1":["N GIAM INIS R"],
+    "Cutios 23 1":["N GIAM INIS R"],
+    "Cutios 24 1":["D AMB GIAM"],
+    "Cutios 25 1":["MD"],
+    "Cutios 26 1":["D AMB"],
+    "Cutios 27 1":["MD"],
+    "Cutios 28 1":["D AMB"],
+    "Cutios 29 1":["MD"],
+    "Cutios 30 1":["D AMB"],
+    "Giamonios 1 1":["MD SIMIUISONNA"],
+    "Giamonios 2 1":["D"],
+    "Giamonios 3 1":["D"],
+    "Giamonios 4 1":["D"],
+    "Giamonios 5 1":["D AMB"],
+    "Giamonios 6 1":["D"],
+    "Giamonios 7 1":["MD SIMIU TIOCOBREXTIO"],
+    "Giamonios 8 1":["MD SIMIUISONNA"],
+    "Giamonios 9 1":["MD SIMIU SINDIU IVOS"],
+    "Giamonios 10 1":["D"],
+    "Giamonios 11 1":["D AMB"],
+    "Giamonios 12 1":["D"],
+    "Giamonios 13 1":["TII D"],
+    "Giamonios 14 1":["ITI D"],
+    "Giamonios 15 1":["IIT D"],
+    "Giamonios 16 1":["D"],
+    "Giamonios 17 1":["NSDS"],
+    "Giamonios 18 1":["D AMB"],
+    "Giamonios 19 1":["TII D"],
+    "Giamonios 20 1":["ITI D AMB"],
+    "Giamonios 21 1":["IIT D"],
+    "Giamonios 22 1":["D SIMIUI AMB"],
+    "Giamonios 23 1":["MD SIMIUISONNA"],
+    "Giamonios 24 1":["D SIMIUIS AMB"],
+    "Giamonios 25 1":["TII D"],
+    "Giamonios 26 1":["N INIS R"],
+    "Giamonios 27 1":["IIT D"],
+    "Giamonios 28 1":["D AMB"],
+    "Giamonios 29 1":["D"],
+    "Simiuisonna 1 1":["GIAM PRINI LAG"],
+    "Simiuisonna 2 1":["MD"],
+    "Simiuisonna 3 1":["D EQVI"],
+    "Simiuisonna 4 1":["MD"],
+    "Simiuisonna 5 1":["N INIS R"],
+    "Simiuisonna 6 1":["D EQVI"],
+    "Simiuisonna 7 1":["D EQVI"],
+    "Simiuisonna 8 1":["PRINI LAG EQVI"],
+    "Simiuisonna 9 1":["D EQVI"],
+    "Simiuisonna 10 1":["MD"],
+    "Simiuisonna 11 1":["D AMB"],
+    "Simiuisonna 12 1":["MD"],
+    "Simiuisonna 13 1":["D EQVI"],
+    "Simiuisonna 14 1":["NSDS EQVI"],
+    "Simiuisonna 15 1":["DSNS EQVI"],
+    "Simiuisonna 16 1":["D EQVI"],
+    "Simiuisonna 17 1":["D EQVI"],
+    "Simiuisonna 18 1":["D EQVI AMB"],
+    "Simiuisonna 19 1":["MD"],
+    "Simiuisonna 20 1":["D AMB"],
+    "Simiuisonna 21 1":["ITT D EQVI"],
+    "Simiuisonna 22 1":["IIT D EQVI AMB"],
+    "Simiuisonna 23 1":["D EQVI"],
+    "Simiuisonna 24 1":["D AMB EQVI"],
+    "Simiuisonna 25 1":["MD"],
+    "Simiuisonna 26 1":["D AMB", "IVOS"],
+    "Simiuisonna 27 1":["MD", "IVOS"],
+    "Simiuisonna 28 1":["D AMB", "IVOS"],
+    "Simiuisonna 29 1":["MD", "IVOS"],
+    "Simiuisonna 30 1":["D AMB", "IVOS"],
+    "Equos 1 1":["D", "IVOS"],
+    "Equos 2 1":["PRINI LAG", "IVOS"],
+    "Equos 3 1":["MD SIMIVIS", "IVOS"],
+    "Equos 4 1":["D", "IVOS"],
+    "Equos 5 1":["D AMB"],
+    "Equos 6 1":["MD SIMIVISO"],
+    "Equos 7 1":["D ELEMB"],
+    "Equos 8 1":["D ELEMB"],
+    "Equos 9 1":["D ELEMB"],
+    "Equos 10 1":["D"],
+    "Equos 11 1":["D AMB"],
+    "Equos 12 1":["D"],
+    "Equos 13 1":["MD SIMI"],
+    "Equos 14 1":["MD SIMI"],
+    "Equos 15 1":["MD SIMI ganor"],
+    "Equos 16 1":["MD SIMIVIS"],
+    "Equos 17 1":["MD SIMIVIS"],
+    "Equos 18 1":["D AMB SIMIVIS"],
+    "Equos 19 1":["D"],
+    "Equos 20 1":["TII D AMB"],
+    "Equos 21 1":["IIT (M)D SIMIVIS"],
+    "Equos 22 1":["ITI D ELEMB AMB"],
+    "Equos 23 1":["IIT D ELEMB"],
+    "Equos 24 1":["D AMB ELEMB"],
+    "Equos 25 1":["D"],
+    "Equos 26 1":["TII D AMB"],
+    "Equos 27 1":["ITI D"],
+    "Equos 28 1":["IIT D AMB"],
+    "Equos 29 1":["D"],
+    "Equos 30 1":["D AMB"],
+    "Elembi 1 1":["D", "IVOS"],
+    "Elembi 2 1":["D", "IVOS"],
+    "Elembi 3 1":["PRINI LAG", "IVOS"],
+    "Elembi 4 1":["D"],
+    "Elembi 5 1":["D AMB"],
+    "Elembi 6 1":["D"],
+    "Elembi 7 1":["MD EDRINNI [TIOGBR?]"],
+    "Elembi 8 1":["MD EDRI TIOCOBREXTIO"],
+    "Elembi 9 1":["MD EDRINNI"],
+    "Elembi 10 1":["N INIS R"],
+    "Elembi 11 1":["D AMB"],
+    "Elembi 12 1":["D"],
+    "Elembi 13 1":["D"],
+    "Elembi 14 1":["D"],
+    "Elembi 15 1":["N"],
+    "Elembi 16 1":["MD EDRIN"],
+    "Elembi 17 1":["MD EDRIN"],
+    "Elembi 18 1":["D EDRIN AMB"],
+    "Elembi 19 1":["D"],
+    "Elembi 20 1":["D AMB"],
+    "Elembi 21 1":["TIT D"],
+    "Elembi 22 1":["D EDRIN AMB"],
+    "Elembi 23 1":["MD EDRINI"],
+    "Elembi 24 1":["D AMB EDRINI"],
+    "Elembi 25 1":["D SINDIV IVOS"],
+    "Elembi 26 1":["D AMB"],
+    "Elembi 27 1":["TII D"],
+    "Elembi 28 1":["ITI D AMB"],
+    "Elembi 29 1":["IIT D"],
+    "Aedrinni 1 1":["D CANTLI"],
+    "Aedrinni 2 1":["MD"],
+    "Aedrinni 3 1":["MD"],
+    "Aedrinni 4 1":["MD"],
+    "Aedrinni 5 1":["D AMB"],
+    "Aedrinni 6 1":["PRINI LOUD"],
+    "Aedrinni 7 1":["D CANTLI"],
+    "Aedrinni 8 1":["D CANTLI"],
+    "Aedrinni 9 1":["D CANTLI"],
+    "Aedrinni 10 1":["MD"],
+    "Aedrinni 11 1":["D AMB"],
+    "Aedrinni 12 1":["MD"],
+    "Aedrinni 13 1":["MD"],
+    "Aedrinni 14 1":["MD"],
+    "Aedrinni 15 1":["MD"],
+    "Aedrinni 16 1":["D ELEMB"],
+    "Aedrinni 17 1":["D ELEMB"],
+    "Aedrinni 18 1":["D AMB ELEMB"],
+    "Aedrinni 19 1":["MD"],
+    "Aedrinni 20 1":["D AMB"],
+    "Aedrinni 21 1":["IIT MD"],
+    "Aedrinni 22 1":["TII D CANTL AMB"],
+    "Aedrinni 23 1":["ITI D CANTL"],
+    "Aedrinni 24 1":["IIT D CANTL AMB"],
+    "Aedrinni 25 1":["MD"],
+    "Aedrinni 26 1":["D AMB"],
+    "Aedrinni 27 1":["MD"],
+    "Aedrinni 28 1":["D AMB", "IVOS"],
+    "Aedrinni 29 1":["MD", "IVOS"],
+    "Aedrinni 30 1":["D AMB", "IVOS"],
+    "Cantlos 1 1":["MD AEDRIN"],
+    "Cantlos 2 1":["D"],
+    "Cantlos 3 1":["D"],
+    "Cantlos 4 1":["PRINI LAG"],
+    "Cantlos 5 1":["D AMB"],
+    "Cantlos 6 1":["D"],
+    "Cantlos 7 1":["D CANTLI"],
+    "Cantlos 8 1":["D CANTLI"],
+    "Cantlos 9 1":["D CANTLI"],
+    "Cantlos 10 1":["D"],
+    "Cantlos 11 1":["D AMB"],
+    "Cantlos 12 1":["D"],
+    "Cantlos 13 1":["D"],
+    "Cantlos 14 1":["D"],
+    "Cantlos 15 1":["D TIOCOBREXTIO"],
+    "Cantlos 16 1":["TII D"],
+    "Cantlos 17 1":["ITI D"],
+    "Cantlos 18 1":["IIT D AMB"],
+    "Cantlos 19 1":["N INIS R"],
+    "Cantlos 20 1":["D AMB"],
+    "Cantlos 21 1":["IIT D"],
+    "Cantlos 22 1":["TII D CANTL AMB"],
+    "Cantlos 23 1":["ITI D CANTL"],
+    "Cantlos 24 1":["IIT D CANTL AMB"],
+    "Cantlos 25 1":["D"],
+    "Cantlos 26 1":["D AMB"],
+    "Cantlos 27 1":["D"],
+    "Cantlos 28 1":["TII (IIT) D AMB IVO"],
+    "Cantlos 29 1":["ITI D IVO DIB CANTL"],
     "Samonios 1 2":["N DUMANNI", "IVOS"],
     "Samonios 2 2":["ITI MD", "IVOS"],
     "Samonios 3 2":["TII D DUM ALE", "IVOS"],
@@ -1413,444 +1675,500 @@ colignyDate.prototype.inscription = function() {
     "Cantlos 27 4":["D"],
     "Cantlos 28 4":["TII D AMB", "IVOS"],
     "Cantlos 29 4":["ITI D", "IVOS"],
-    "Samonios 1 0":["D DUMANNI", "IVOS"],
-    "Samonios 2 0":["MD", "IVOS"],
-    "Samonios 3 0":["TII D DUM ALE", "IVOS"],
-    "Samonios 4 0":["MD"],
-    "Samonios 5 0":["D AMB"],
-    "Samonios 6 0":["MD"],
-    "Samonios 7 0":["N PRINI LOUDIN"],
-    "Samonios 8 0":["D DUMANI"],
-    "Samonios 9 0":["MD"],
-    "Samonios 10 0":["MD"],
-    "Samonios 11 0":["D AMB"],
-    "Samonios 12 0":["MD"],
-    "Samonios 13 0":["MD"],
-    "Samonios 14 0":["MD"],
-    "Samonios 15 0":["MD"],
-    "Samonios 16 0":["D DUMANNI"],
-    "Samonios 17 0":["MD TRINO SAM"],
-    "Samonios 18 0":["D AMB"],
-    "Samonios 19 0":["TII MD"],
-    "Samonios 20 0":["ITI D AMB"],
-    "Samonios 21 0":["IIT MD"],
-    "Samonios 22 0":["D AMB"],
-    "Samonios 23 0":["N INIS R"],
-    "Samonios 24 0":["N INIS R"],
-    "Samonios 25 0":["TII MD"],
-    "Samonios 26 0":["ITI D AMB", "IVOS"],
-    "Samonios 27 0":["IIT MD", "IVOS"],
-    "Samonios 28 0":["D AMB", "IVOS"],
-    "Samonios 29 0":["MD", "IVOS"],
-    "Samonios 30 0":["D AMB", "IVOS"],
-    "Dumanios 1 0":["SAM PRINI LOUD EXO", "IVOS"],
-    "Dumanios 2 0":["D", "IVOS"],
-    "Dumanios 3 0":["D", "IVOS"],
-    "Dumanios 4 0":["D", "IVOS"],
-    "Dumanios 5 0":["PRINI LAGET"],
-    "Dumanios 6 0":["ITI D"],
-    "Dumanios 7 0":["N INIS R"],
-    "Dumanios 8 0":["N SAMONI"],
-    "Dumanios 9 0":["D"],
-    "Dumanios 10 0":["D"],
-    "Dumanios 11 0":["N INIS R"],
-    "Dumanios 12 0":["ITI D"],
-    "Dumanios 13 0":["IIT D"],
-    "Dumanios 14 0":["D"],
-    "Dumanios 15 0":["D"],
-    "Dumanios 16 0":["MD SAMONI"],
-    "Dumanios 17 0":["MD SAMONI"],
-    "Dumanios 18 0":["ITI D AMB"],
-    "Dumanios 19 0":["IIT D"],
-    "Dumanios 20 0":["D AMB"],
-    "Dumanios 21 0":["IIT M D"],
-    "Dumanios 22 0":["D AMB"],
-    "Dumanios 23 0":["TII D"],
-    "Dumanios 24 0":["N INIS R"],
-    "Dumanios 25 0":["IIT D"],
-    "Dumanios 26 0":["D AMB"],
-    "Dumanios 27 0":["N INIS R"],
-    "Dumanios 28 0":["D AMB"],
-    "Dumanios 29 0":["NSDS"],
-    "Riuros 1 0":["D ANAGANT"],
-    "Riuros 2 0":["PRINI LOUD"],
-    "Riuros 3 0":["MD"],
-    "Riuros 4 0":["(MD) BRIGIOMU RIVRI"],
-    "Riuros 5 0":["N INIS R"],
-    "Riuros 6 0":["MD"],
-    "Riuros 7 0":["MD"],
-    "Riuros 8 0":["PRINI LOUD"],
-    "Riuros 9 0":["N"],
-    "Riuros 10 0":["MD"],
-    "Riuros 11 0":["N INIS R"],
-    "Riuros 12 0":["MD"],
-    "Riuros 13 0":["DEC/VOR LUG RIV"],
-    "Riuros 14 0":["MD", "IVOS"],
-    "Riuros 15 0":["MD", "IVOS"],
-    "Riuros 16 0":["MD", "IVOS"],
-    "Riuros 17 0":["MD", "IVOS"],
-    "Riuros 18 0":["D AMB", "IVOS"],
-    "Riuros 19 0":["MD", "IVOS"],
-    "Riuros 20 0":["[TII] D AMB", "IVOS"],
-    "Riuros 21 0":["[ITT] IIT MD"],
-    "Riuros 22 0":["[IIT] D AMB"],
-    "Riuros 23 0":["D PETIUX ANAG"],
-    "Riuros 24 0":["D AMB"],
-    "Riuros 25 0":["MD PETIUX RIVRI"],
-    "Riuros 26 0":["TII D AMB", "IVOS"],
-    "Riuros 27 0":["ITI MD", "IVOS"],
-    "Riuros 28 0":["IIT D AMB", "IVOS"],
-    "Riuros 29 0":["MD", "IVOS"],
-    "Riuros 30 0":["D AMB", "IVOS"],
-    "Anagantios 1 0":["MD RIVRI IX", "IVOS"],
-    "Anagantios 2 0":["D", "IVOS"],
-    "Anagantios 3 0":["D", "IVOS"],
-    "Anagantios 4 0":["MD OGIOUMU RVRI"],
-    "Anagantios 5 0":["N INIS R"],
-    "Anagantios 6 0":["PRINI LAG"],
-    "Anagantios 7 0":["ITI D"],
-    "Anagantios 8 0":["IIT D"],
-    "Anagantios 9 0":["D"],
-    "Anagantios 10 0":["N"],
-    "Anagantios 11 0":["D AMB"],
-    "Anagantios 12 0":["TII D"],
-    "Anagantios 13 0":["ITI D"],
-    "Anagantios 14 0":["IIT D"],
-    "Anagantios 15 0":["D"],
-    "Anagantios 16 0":["D"],
-    "Anagantios 17 0":["D"],
-    "Anagantios 18 0":["TII D AMB"],
-    "Anagantios 19 0":["ITI D"],
-    "Anagantios 20 0":["IIT D AMB"],
-    "Anagantios 21 0":["N INIS R"],
-    "Anagantios 22 0":["N INIS R"],
-    "Anagantios 23 0":["D"],
-    "Anagantios 24 0":["N INIS R"],
-    "Anagantios 25 0":["ITI D"],
-    "Anagantios 26 0":["IIT D AMB"],
-    "Anagantios 27 0":["D"],
-    "Anagantios 28 0":["D AMB"],
-    "Anagantios 29 0":["D"],
-    "Ogronios 1 0":["MD"],
-    "Ogronios 2 0":["MD"],
-    "Ogronios 3 0":["PRINI LOUD"],
-    "Ogronios 4 0":["MD"],
-    "Ogronios 5 0":["N INIS R"],
-    "Ogronios 6 0":["MD"],
-    "Ogronios 7 0":["MD"],
-    "Ogronios 8 0":["MD"],
-    "Ogronios 9 0":["MD"],
-    "Ogronios 10 0":["MD"],
-    "Ogronios 11 0":["N"],
-    "Ogronios 12 0":["MD"],
-    "Ogronios 13 0":["MD"],
-    "Ogronios 14 0":["MD"],
-    "Ogronios 15 0":["MD"],
-    "Ogronios 16 0":["MD CVTIO"],
-    "Ogronios 17 0":["MD CVTIO"],
-    "Ogronios 18 0":["D CVTIO AMB"],
-    "Ogronios 19 0":["MD"],
-    "Ogronios 20 0":["D AMB"],
-    "Ogronios 21 0":["IIT MD"],
-    "Ogronios 22 0":["D AMB"],
-    "Ogronios 23 0":["MD QVTIO"],
-    "Ogronios 24 0":["D AMB"],
-    "Ogronios 25 0":["MD"],
-    "Ogronios 26 0":["D AMB"],
-    "Ogronios 27 0":["N INIS R"],
-    "Ogronios 28 0":["ITI D AMB"],
-    "Ogronios 29 0":["IIT MD"],
-    "Ogronios 30 0":["D AMB"],
-    "Cutios 1 0":["MD"],
-    "Cutios 2 0":["MD"],
-    "Cutios 3 0":["MD"],
-    "Cutios 4 0":["PRINI LOUD"],
-    "Cutios 5 0":["N INIS R"],
-    "Cutios 6 0":["MD"],
-    "Cutios 7 0":["MD"],
-    "Cutios 8 0":["MD"],
-    "Cutios 9 0":["N INIS R"],
-    "Cutios 10 0":["MD"],
-    "Cutios 11 0":["D AMB"],
-    "Cutios 12 0":["N"],
-    "Cutios 13 0":["MD"],
-    "Cutios 14 0":["MD"],
-    "Cutios 15 0":["MD"],
-    "Cutios 16 0":["MD OGRON"],
-    "Cutios 17 0":["MD OGRON"],
-    "Cutios 18 0":["D OGRON AMB"],
-    "Cutios 19 0":["N INIS R"],
-    "Cutios 20 0":["D AMB"],
-    "Cutios 21 0":["N INIS R"],
-    "Cutios 22 0":["D AMB"],
-    "Cutios 23 0":["MD OGRONI"],
-    "Cutios 24 0":["D AMB"],
-    "Cutios 25 0":["MD"],
-    "Cutios 26 0":["D AMB"],
-    "Cutios 27 0":["MD"],
-    "Cutios 28 0":["D AMB", "IVOS"],
-    "Cutios 29 0":["MD", "IVOS"],
-    "Cutios 30 0":["D AMB", "IVOS"],
-    "Giamonios 1 0":["N SIMIUISONNA EXO", "IVOS"],
-    "Giamonios 2 0":["ITI D", "IVOS"],
-    "Giamonios 3 0":["IIT D", "IVOS"],
-    "Giamonios 4 0":["D"],
-    "Giamonios 5 0":["D AMB"],
-    "Giamonios 6 0":["D"],
-    "Giamonios 7 0":["PRINI LAG"],
-    "Giamonios 8 0":["ITI D"],
-    "Giamonios 9 0":["N INIS R"],
-    "Giamonios 10 0":["D"],
-    "Giamonios 11 0":["D AMB"],
-    "Giamonios 12 0":["D"],
-    "Giamonios 13 0":["N"],
-    "Giamonios 14 0":["ITI D"],
-    "Giamonios 15 0":["IIT D"],
-    "Giamonios 16 0":["D"],
-    "Giamonios 17 0":["NSDS"],
-    "Giamonios 18 0":["D AMB"],
-    "Giamonios 19 0":["TII D"],
-    "Giamonios 20 0":["ITI D AMB"],
-    "Giamonios 21 0":["IIT D"],
-    "Giamonios 22 0":["N INIS R"],
-    "Giamonios 23 0":["N INIS R"],
-    "Giamonios 24 0":["D AMB"],
-    "Giamonios 25 0":["TII D"],
-    "Giamonios 26 0":["N INIS R"],
-    "Giamonios 27 0":["IIT D"],
-    "Giamonios 28 0":["D AMB"],
-    "Giamonios 29 0":["D"],
-    "Simiuisonna 1 0":["GIAM PRINI LAG"],
-    "Simiuisonna 2 0":["N"],
-    "Simiuisonna 3 0":["ITI D EQVI"],
-    "Simiuisonna 4 0":["MD"],
-    "Simiuisonna 5 0":["N INIS R"],
-    "Simiuisonna 6 0":["D EQVI"],
-    "Simiuisonna 7 0":["MD TIOCOBREXTIO"],
-    "Simiuisonna 8 0":["MD"],
-    "Simiuisonna 9 0":["MD SINDIU", "IVOS"],
-    "Simiuisonna 10 0":["MD"],
-    "Simiuisonna 11 0":["D AMB"],
-    "Simiuisonna 12 0":["MD"],
-    "Simiuisonna 13 0":["D EQVI"],
-    "Simiuisonna 14 0":["N EQVI"],
-    "Simiuisonna 15 0":["DSNS EQVI"],
-    "Simiuisonna 16 0":["D EQVI"],
-    "Simiuisonna 17 0":["D EQVI"],
-    "Simiuisonna 18 0":["D AMB EQVI"],
-    "Simiuisonna 19 0":["MD"],
-    "Simiuisonna 20 0":["D AMB"],
-    "Simiuisonna 21 0":["ITT D EQVI"],
-    "Simiuisonna 22 0":["D AMB"],
-    "Simiuisonna 23 0":["MD"],
-    "Simiuisonna 24 0":["D AMB"],
-    "Simiuisonna 25 0":["MD"],
-    "Simiuisonna 26 0":["D AMB"],
-    "Simiuisonna 27 0":["MD"],
-    "Simiuisonna 28 0":["D AMB"],
-    "Simiuisonna 29 0":["MD"],
-    "Simiuisonna 30 0":["D AMB"],
-    "Equos 1 0":["D"],
-    "Equos 2 0":["PRINI LAG"],
-    "Equos 3 0":["N SIMIVIS"],
-    "Equos 4 0":["IIT D"],
-    "Equos 5 0":["D AMB"],
-    "Equos 6 0":["MD SIMIVISO"],
-    "Equos 7 0":["D"],
-    "Equos 8 0":["PRINI LAG"],
-    "Equos 9 0":["ITI D"],
-    "Equos 10 0":["IIT D"],
-    "Equos 11 0":["D AMB"],
-    "Equos 12 0":["D"],
-    "Equos 13 0":["MD SIMIV"],
-    "Equos 14 0":["MD SIMIV"],
-    "Equos 15 0":["N SIMIV"],
-    "Equos 16 0":["MD SIMIVIS"],
-    "Equos 17 0":["MD SIMIVIS"],
-    "Equos 18 0":["D AMB SIMIVIS"],
-    "Equos 19 0":["D"],
-    "Equos 20 0":["TII D AMB"],
-    "Equos 21 0":["IIT MD SIMIVIS"],
-    "Equos 22 0":["IIT D AMB"],
-    "Equos 23 0":["D"],
-    "Equos 24 0":["D AMB"],
-    "Equos 25 0":["D"],
-    "Equos 26 0":["TII D AMB", "IVOS"],
-    "Equos 27 0":["ITI D", "IVOS"],
-    "Equos 28 0":["IIT D AMB", "IVOS"],
-    "Equos 29 0":["D", "IVOS"],
-    "Equos 30 0":["D AMB", "IVOS"],
-    "Elembi 1 0":["D", "IVOS"],
-    "Elembi 2 0":["D", "IVOS"],
-    "Elembi 3 0":["PRINI LAG", "IVOS"],
-    "Elembi 4 0":["N", "IVOS"],
-    "Elembi 5 0":["IIT D AMB"],
-    "Elembi 6 0":["D"],
-    "Elembi 7 0":["D"],
-    "Elembi 8 0":["D"],
-    "Elembi 9 0":["PRINI LAG"],
-    "Elembi 10 0":["N INIS R"],
-    "Elembi 11 0":["IIT D AMB"],
-    "Elembi 12 0":["D"],
-    "Elembi 13 0":["D"],
-    "Elembi 14 0":["D"],
-    "Elembi 15 0":["N"],
-    "Elembi 16 0":["N EDRIN"],
-    "Elembi 17 0":["MD EDRIN"],
-    "Elembi 18 0":["D EDRIN AMB"],
-    "Elembi 19 0":["D"],
-    "Elembi 20 0":["D AMB"],
-    "Elembi 21 0":["TIT D"],
-    "Elembi 22 0":["ITI D AMB"],
-    "Elembi 23 0":["IIT D"],
-    "Elembi 24 0":["D AMB"],
-    "Elembi 25 0":["D"],
-    "Elembi 26 0":["D AMB"],
-    "Elembi 27 0":["TII D"],
-    "Elembi 28 0":["ITI D AMB"],
-    "Elembi 29 0":["IIT D"],
-    "Aedrinni 1 0":["D CANTLI", "IVOS"],
-    "Aedrinni 2 0":["MD", "IVOS"],
-    "Aedrinni 3 0":["MD", "IVOS"],
-    "Aedrinni 4 0":["MD"],
-    "Aedrinni 5 0":["N"],
-    "Aedrinni 6 0":["PRINI LOUD"],
-    "Aedrinni 7 0":["MD [TIOGBR?]"],
-    "Aedrinni 8 0":["MD TIOCOBREXTIO"],
-    "Aedrinni 9 0":["MD"],
-    "Aedrinni 10 0":["MD"],
-    "Aedrinni 11 0":["D AMB"],
-    "Aedrinni 12 0":["MD"],
-    "Aedrinni 13 0":["MD"],
-    "Aedrinni 14 0":["MD"],
-    "Aedrinni 15 0":["MD"],
-    "Aedrinni 16 0":["D ELEMB"],
-    "Aedrinni 17 0":["N ELEMB"],
-    "Aedrinni 18 0":["D ELEMB AMB"],
-    "Aedrinni 19 0":["MD"],
-    "Aedrinni 20 0":["D AMB"],
-    "Aedrinni 21 0":["IIT MD"],
-    "Aedrinni 22 0":["D AMB"],
-    "Aedrinni 23 0":["MD"],
-    "Aedrinni 24 0":["D AMB"],
-    "Aedrinni 25 0":["MD SINDIV IVOS"],
-    "Aedrinni 26 0":["D AMB"],
-    "Aedrinni 27 0":["MD"],
-    "Aedrinni 28 0":["D AMB"],
-    "Aedrinni 29 0":["MD"],
-    "Aedrinni 30 0":["N"],
-    "Cantlos 1 0":["MD AEDRIN"],
-    "Cantlos 2 0":["D"],
-    "Cantlos 3 0":["D"],
-    "Cantlos 4 0":["PRINI LAG"],
-    "Cantlos 5 0":["ITI D AMB"],
-    "Cantlos 6 0":["N"],
-    "Cantlos 7 0":["D"],
-    "Cantlos 8 0":["D"],
-    "Cantlos 9 0":["D"],
-    "Cantlos 10 0":["TII D"],
-    "Cantlos 11 0":["ITI D AMB"],
-    "Cantlos 12 0":["IIT D"],
-    "Cantlos 13 0":["D"],
-    "Cantlos 14 0":["D"],
-    "Cantlos 15 0":["D TIOCOBREXTIO"],
-    "Cantlos 16 0":["TII D"],
-    "Cantlos 17 0":["ITI D"],
-    "Cantlos 18 0":["N"],
-    "Cantlos 19 0":["N INIS R"],
-    "Cantlos 20 0":["D AMB"],
-    "Cantlos 21 0":["IIT D"],
-    "Cantlos 22 0":["TII D AMB"],
-    "Cantlos 23 0":["ITI D"],
-    "Cantlos 24 0":["IIT D AMB"],
-    "Cantlos 25 0":["D"],
-    "Cantlos 26 0":["D AMB"],
-    "Cantlos 27 0":["D"],
-    "Cantlos 28 0":["TII D AMB", "IVOS"],
-    "Cantlos 29 0":["(ITI) D", "IVOS"]
+    "Samonios 1 5":["D DUMANNI", "IVOS"],
+    "Samonios 2 5":["MD", "IVOS"],
+    "Samonios 3 5":["TII D DUM ALE", "IVOS"],
+    "Samonios 4 5":["MD"],
+    "Samonios 5 5":["D AMB"],
+    "Samonios 6 5":["MD"],
+    "Samonios 7 5":["N PRINI LOUDIN"],
+    "Samonios 8 5":["D DUMANI"],
+    "Samonios 9 5":["MD"],
+    "Samonios 10 5":["MD"],
+    "Samonios 11 5":["D AMB"],
+    "Samonios 12 5":["MD"],
+    "Samonios 13 5":["MD"],
+    "Samonios 14 5":["MD"],
+    "Samonios 15 5":["MD"],
+    "Samonios 16 5":["D DUMANNI"],
+    "Samonios 17 5":["MD TRINO SAM"],
+    "Samonios 18 5":["D AMB"],
+    "Samonios 19 5":["TII MD"],
+    "Samonios 20 5":["ITI D AMB"],
+    "Samonios 21 5":["IIT MD"],
+    "Samonios 22 5":["D AMB"],
+    "Samonios 23 5":["N INIS R"],
+    "Samonios 24 5":["N INIS R"],
+    "Samonios 25 5":["TII MD"],
+    "Samonios 26 5":["ITI D AMB", "IVOS"],
+    "Samonios 27 5":["IIT MD", "IVOS"],
+    "Samonios 28 5":["D AMB", "IVOS"],
+    "Samonios 29 5":["MD", "IVOS"],
+    "Samonios 30 5":["D AMB", "IVOS"],
+    "Dumanios 1 5":["SAM PRINI LOUD EXO", "IVOS"],
+    "Dumanios 2 5":["D", "IVOS"],
+    "Dumanios 3 5":["D", "IVOS"],
+    "Dumanios 4 5":["D", "IVOS"],
+    "Dumanios 5 5":["PRINI LAGET"],
+    "Dumanios 6 5":["ITI D"],
+    "Dumanios 7 5":["N INIS R"],
+    "Dumanios 8 5":["N SAMONI"],
+    "Dumanios 9 5":["D"],
+    "Dumanios 10 5":["D"],
+    "Dumanios 11 5":["N INIS R"],
+    "Dumanios 12 5":["ITI D"],
+    "Dumanios 13 5":["IIT D"],
+    "Dumanios 14 5":["D"],
+    "Dumanios 15 5":["D"],
+    "Dumanios 16 5":["MD SAMONI"],
+    "Dumanios 17 5":["MD SAMONI"],
+    "Dumanios 18 5":["ITI D AMB"],
+    "Dumanios 19 5":["IIT D"],
+    "Dumanios 20 5":["D AMB"],
+    "Dumanios 21 5":["IIT M D"],
+    "Dumanios 22 5":["D AMB"],
+    "Dumanios 23 5":["TII D"],
+    "Dumanios 24 5":["N INIS R"],
+    "Dumanios 25 5":["IIT D"],
+    "Dumanios 26 5":["D AMB"],
+    "Dumanios 27 5":["N INIS R"],
+    "Dumanios 28 5":["D AMB"],
+    "Dumanios 29 5":["NSDS"],
+    "Riuros 1 5":["D ANAGANT"],
+    "Riuros 2 5":["PRINI LOUD"],
+    "Riuros 3 5":["MD"],
+    "Riuros 4 5":["(MD) BRIGIOMU RIVRI"],
+    "Riuros 5 5":["N INIS R"],
+    "Riuros 6 5":["MD"],
+    "Riuros 7 5":["MD"],
+    "Riuros 8 5":["PRINI LOUD"],
+    "Riuros 9 5":["N"],
+    "Riuros 10 5":["MD"],
+    "Riuros 11 5":["N INIS R"],
+    "Riuros 12 5":["MD"],
+    "Riuros 13 5":["DEC/VOR LUG RIV"],
+    "Riuros 14 5":["MD", "IVOS"],
+    "Riuros 15 5":["MD", "IVOS"],
+    "Riuros 16 5":["MD", "IVOS"],
+    "Riuros 17 5":["MD", "IVOS"],
+    "Riuros 18 5":["D AMB", "IVOS"],
+    "Riuros 19 5":["MD", "IVOS"],
+    "Riuros 20 5":["[TII] D AMB", "IVOS"],
+    "Riuros 21 5":["[ITT] IIT MD"],
+    "Riuros 22 5":["[IIT] D AMB"],
+    "Riuros 23 5":["D PETIUX ANAG"],
+    "Riuros 24 5":["D AMB"],
+    "Riuros 25 5":["MD PETIUX RIVRI"],
+    "Riuros 26 5":["TII D AMB", "IVOS"],
+    "Riuros 27 5":["ITI MD", "IVOS"],
+    "Riuros 28 5":["IIT D AMB", "IVOS"],
+    "Riuros 29 5":["MD", "IVOS"],
+    "Riuros 30 5":["D AMB", "IVOS"],
+    "Anagantios 1 5":["MD RIVRI IX", "IVOS"],
+    "Anagantios 2 5":["D", "IVOS"],
+    "Anagantios 3 5":["D", "IVOS"],
+    "Anagantios 4 5":["MD OGIOUMU RVRI"],
+    "Anagantios 5 5":["N INIS R"],
+    "Anagantios 6 5":["PRINI LAG"],
+    "Anagantios 7 5":["ITI D"],
+    "Anagantios 8 5":["IIT D"],
+    "Anagantios 9 5":["D"],
+    "Anagantios 10 5":["N"],
+    "Anagantios 11 5":["D AMB"],
+    "Anagantios 12 5":["TII D"],
+    "Anagantios 13 5":["ITI D"],
+    "Anagantios 14 5":["IIT D"],
+    "Anagantios 15 5":["D"],
+    "Anagantios 16 5":["D"],
+    "Anagantios 17 5":["D"],
+    "Anagantios 18 5":["TII D AMB"],
+    "Anagantios 19 5":["ITI D"],
+    "Anagantios 20 5":["IIT D AMB"],
+    "Anagantios 21 5":["N INIS R"],
+    "Anagantios 22 5":["N INIS R"],
+    "Anagantios 23 5":["D"],
+    "Anagantios 24 5":["N INIS R"],
+    "Anagantios 25 5":["ITI D"],
+    "Anagantios 26 5":["IIT D AMB"],
+    "Anagantios 27 5":["D"],
+    "Anagantios 28 5":["D AMB"],
+    "Anagantios 29 5":["D"],
+    "Ogronios 1 5":["MD"],
+    "Ogronios 2 5":["MD"],
+    "Ogronios 3 5":["PRINI LOUD"],
+    "Ogronios 4 5":["MD"],
+    "Ogronios 5 5":["N INIS R"],
+    "Ogronios 6 5":["MD"],
+    "Ogronios 7 5":["MD"],
+    "Ogronios 8 5":["MD"],
+    "Ogronios 9 5":["MD"],
+    "Ogronios 10 5":["MD"],
+    "Ogronios 11 5":["N"],
+    "Ogronios 12 5":["MD"],
+    "Ogronios 13 5":["MD"],
+    "Ogronios 14 5":["MD"],
+    "Ogronios 15 5":["MD"],
+    "Ogronios 16 5":["MD CVTIO"],
+    "Ogronios 17 5":["MD CVTIO"],
+    "Ogronios 18 5":["D CVTIO AMB"],
+    "Ogronios 19 5":["MD"],
+    "Ogronios 20 5":["D AMB"],
+    "Ogronios 21 5":["IIT MD"],
+    "Ogronios 22 5":["D AMB"],
+    "Ogronios 23 5":["MD QVTIO"],
+    "Ogronios 24 5":["D AMB"],
+    "Ogronios 25 5":["MD"],
+    "Ogronios 26 5":["D AMB"],
+    "Ogronios 27 5":["N INIS R"],
+    "Ogronios 28 5":["ITI D AMB"],
+    "Ogronios 29 5":["IIT MD"],
+    "Ogronios 30 5":["D AMB"],
+    "Cutios 1 5":["MD"],
+    "Cutios 2 5":["MD"],
+    "Cutios 3 5":["MD"],
+    "Cutios 4 5":["PRINI LOUD"],
+    "Cutios 5 5":["N INIS R"],
+    "Cutios 6 5":["MD"],
+    "Cutios 7 5":["MD"],
+    "Cutios 8 5":["MD"],
+    "Cutios 9 5":["N INIS R"],
+    "Cutios 10 5":["MD"],
+    "Cutios 11 5":["D AMB"],
+    "Cutios 12 5":["N"],
+    "Cutios 13 5":["MD"],
+    "Cutios 14 5":["MD"],
+    "Cutios 15 5":["MD"],
+    "Cutios 16 5":["MD OGRON"],
+    "Cutios 17 5":["MD OGRON"],
+    "Cutios 18 5":["D OGRON AMB"],
+    "Cutios 19 5":["N INIS R"],
+    "Cutios 20 5":["D AMB"],
+    "Cutios 21 5":["N INIS R"],
+    "Cutios 22 5":["D AMB"],
+    "Cutios 23 5":["MD OGRONI"],
+    "Cutios 24 5":["D AMB"],
+    "Cutios 25 5":["MD"],
+    "Cutios 26 5":["D AMB"],
+    "Cutios 27 5":["MD"],
+    "Cutios 28 5":["D AMB", "IVOS"],
+    "Cutios 29 5":["MD", "IVOS"],
+    "Cutios 30 5":["D AMB", "IVOS"],
+    "Giamonios 1 5":["N SIMIUISONNA EXO", "IVOS"],
+    "Giamonios 2 5":["ITI D", "IVOS"],
+    "Giamonios 3 5":["IIT D", "IVOS"],
+    "Giamonios 4 5":["D"],
+    "Giamonios 5 5":["D AMB"],
+    "Giamonios 6 5":["D"],
+    "Giamonios 7 5":["PRINI LAG"],
+    "Giamonios 8 5":["ITI D"],
+    "Giamonios 9 5":["N INIS R"],
+    "Giamonios 10 5":["D"],
+    "Giamonios 11 5":["D AMB"],
+    "Giamonios 12 5":["D"],
+    "Giamonios 13 5":["N"],
+    "Giamonios 14 5":["ITI D"],
+    "Giamonios 15 5":["IIT D"],
+    "Giamonios 16 5":["D"],
+    "Giamonios 17 5":["NSDS"],
+    "Giamonios 18 5":["D AMB"],
+    "Giamonios 19 5":["TII D"],
+    "Giamonios 20 5":["ITI D AMB"],
+    "Giamonios 21 5":["IIT D"],
+    "Giamonios 22 5":["N INIS R"],
+    "Giamonios 23 5":["N INIS R"],
+    "Giamonios 24 5":["D AMB"],
+    "Giamonios 25 5":["TII D"],
+    "Giamonios 26 5":["N INIS R"],
+    "Giamonios 27 5":["IIT D"],
+    "Giamonios 28 5":["D AMB"],
+    "Giamonios 29 5":["D"],
+    "Simiuisonna 1 5":["GIAM PRINI LAG"],
+    "Simiuisonna 2 5":["N"],
+    "Simiuisonna 3 5":["ITI D EQVI"],
+    "Simiuisonna 4 5":["MD"],
+    "Simiuisonna 5 5":["N INIS R"],
+    "Simiuisonna 6 5":["D EQVI"],
+    "Simiuisonna 7 5":["MD TIOCOBREXTIO"],
+    "Simiuisonna 8 5":["MD"],
+    "Simiuisonna 9 5":["MD SINDIU", "IVOS"],
+    "Simiuisonna 10 5":["MD"],
+    "Simiuisonna 11 5":["D AMB"],
+    "Simiuisonna 12 5":["MD"],
+    "Simiuisonna 13 5":["D EQVI"],
+    "Simiuisonna 14 5":["N EQVI"],
+    "Simiuisonna 15 5":["DSNS EQVI"],
+    "Simiuisonna 16 5":["D EQVI"],
+    "Simiuisonna 17 5":["D EQVI"],
+    "Simiuisonna 18 5":["D AMB EQVI"],
+    "Simiuisonna 19 5":["MD"],
+    "Simiuisonna 20 5":["D AMB"],
+    "Simiuisonna 21 5":["ITT D EQVI"],
+    "Simiuisonna 22 5":["D AMB"],
+    "Simiuisonna 23 5":["MD"],
+    "Simiuisonna 24 5":["D AMB"],
+    "Simiuisonna 25 5":["MD"],
+    "Simiuisonna 26 5":["D AMB"],
+    "Simiuisonna 27 5":["MD"],
+    "Simiuisonna 28 5":["D AMB"],
+    "Simiuisonna 29 5":["MD"],
+    "Simiuisonna 30 5":["D AMB"],
+    "Equos 1 5":["D"],
+    "Equos 2 5":["PRINI LAG"],
+    "Equos 3 5":["N SIMIVIS"],
+    "Equos 4 5":["IIT D"],
+    "Equos 5 5":["D AMB"],
+    "Equos 6 5":["MD SIMIVISO"],
+    "Equos 7 5":["D"],
+    "Equos 8 5":["PRINI LAG"],
+    "Equos 9 5":["ITI D"],
+    "Equos 10 5":["IIT D"],
+    "Equos 11 5":["D AMB"],
+    "Equos 12 5":["D"],
+    "Equos 13 5":["MD SIMIV"],
+    "Equos 14 5":["MD SIMIV"],
+    "Equos 15 5":["N SIMIV"],
+    "Equos 16 5":["MD SIMIVIS"],
+    "Equos 17 5":["MD SIMIVIS"],
+    "Equos 18 5":["D AMB SIMIVIS"],
+    "Equos 19 5":["D"],
+    "Equos 20 5":["TII D AMB"],
+    "Equos 21 5":["IIT MD SIMIVIS"],
+    "Equos 22 5":["IIT D AMB"],
+    "Equos 23 5":["D"],
+    "Equos 24 5":["D AMB"],
+    "Equos 25 5":["D"],
+    "Equos 26 5":["TII D AMB", "IVOS"],
+    "Equos 27 5":["ITI D", "IVOS"],
+    "Equos 28 5":["IIT D AMB", "IVOS"],
+    "Equos 29 5":["D", "IVOS"],
+    "Equos 30 5":["D AMB", "IVOS"],
+    "Elembi 1 5":["D", "IVOS"],
+    "Elembi 2 5":["D", "IVOS"],
+    "Elembi 3 5":["PRINI LAG", "IVOS"],
+    "Elembi 4 5":["N", "IVOS"],
+    "Elembi 5 5":["IIT D AMB"],
+    "Elembi 6 5":["D"],
+    "Elembi 7 5":["D"],
+    "Elembi 8 5":["D"],
+    "Elembi 9 5":["PRINI LAG"],
+    "Elembi 10 5":["N INIS R"],
+    "Elembi 11 5":["IIT D AMB"],
+    "Elembi 12 5":["D"],
+    "Elembi 13 5":["D"],
+    "Elembi 14 5":["D"],
+    "Elembi 15 5":["N"],
+    "Elembi 16 5":["N EDRIN"],
+    "Elembi 17 5":["MD EDRIN"],
+    "Elembi 18 5":["D EDRIN AMB"],
+    "Elembi 19 5":["D"],
+    "Elembi 20 5":["D AMB"],
+    "Elembi 21 5":["TIT D"],
+    "Elembi 22 5":["ITI D AMB"],
+    "Elembi 23 5":["IIT D"],
+    "Elembi 24 5":["D AMB"],
+    "Elembi 25 5":["D"],
+    "Elembi 26 5":["D AMB"],
+    "Elembi 27 5":["TII D"],
+    "Elembi 28 5":["ITI D AMB"],
+    "Elembi 29 5":["IIT D"],
+    "Aedrinni 1 5":["D CANTLI", "IVOS"],
+    "Aedrinni 2 5":["MD", "IVOS"],
+    "Aedrinni 3 5":["MD", "IVOS"],
+    "Aedrinni 4 5":["MD"],
+    "Aedrinni 5 5":["N"],
+    "Aedrinni 6 5":["PRINI LOUD"],
+    "Aedrinni 7 5":["MD [TIOGBR?]"],
+    "Aedrinni 8 5":["MD TIOCOBREXTIO"],
+    "Aedrinni 9 5":["MD"],
+    "Aedrinni 10 5":["MD"],
+    "Aedrinni 11 5":["D AMB"],
+    "Aedrinni 12 5":["MD"],
+    "Aedrinni 13 5":["MD"],
+    "Aedrinni 14 5":["MD"],
+    "Aedrinni 15 5":["MD"],
+    "Aedrinni 16 5":["D ELEMB"],
+    "Aedrinni 17 5":["N ELEMB"],
+    "Aedrinni 18 5":["D ELEMB AMB"],
+    "Aedrinni 19 5":["MD"],
+    "Aedrinni 20 5":["D AMB"],
+    "Aedrinni 21 5":["IIT MD"],
+    "Aedrinni 22 5":["D AMB"],
+    "Aedrinni 23 5":["MD"],
+    "Aedrinni 24 5":["D AMB"],
+    "Aedrinni 25 5":["MD SINDIV IVOS"],
+    "Aedrinni 26 5":["D AMB"],
+    "Aedrinni 27 5":["MD"],
+    "Aedrinni 28 5":["D AMB"],
+    "Aedrinni 29 5":["MD"],
+    "Aedrinni 30 5":["N"],
+    "Cantlos 1 5":["MD AEDRIN"],
+    "Cantlos 2 5":["D"],
+    "Cantlos 3 5":["D"],
+    "Cantlos 4 5":["PRINI LAG"],
+    "Cantlos 5 5":["ITI D AMB"],
+    "Cantlos 6 5":["N"],
+    "Cantlos 7 5":["D"],
+    "Cantlos 8 5":["D"],
+    "Cantlos 9 5":["D"],
+    "Cantlos 10 5":["TII D"],
+    "Cantlos 11 5":["ITI D AMB"],
+    "Cantlos 12 5":["IIT D"],
+    "Cantlos 13 5":["D"],
+    "Cantlos 14 5":["D"],
+    "Cantlos 15 5":["D TIOCOBREXTIO"],
+    "Cantlos 16 5":["TII D"],
+    "Cantlos 17 5":["ITI D"],
+    "Cantlos 18 5":["N"],
+    "Cantlos 19 5":["N INIS R"],
+    "Cantlos 20 5":["D AMB"],
+    "Cantlos 21 5":["IIT D"],
+    "Cantlos 22 5":["TII D AMB"],
+    "Cantlos 23 5":["ITI D"],
+    "Cantlos 24 5":["IIT D AMB"],
+    "Cantlos 25 5":["D"],
+    "Cantlos 26 5":["D AMB"],
+    "Cantlos 27 5":["D"],
+    "Cantlos 28 5":["TII D AMB", "IVOS"],
+    "Cantlos 29 5":["(ITI) D", "IVOS"]
   }
+  return inscrips[this.string(true)];
+}
 
-  var metYearSet = { 
-    1:0,
-    2:4,
-    3:3,
-    4:2,
-    5:1,
-    6:0,
-    7:4,
-    8:3,
-    9:2,
-    10:1,
-    11:0,
-    12:4,
-    13:3,
-    14:2,
-    15:1,
-    16:0,
-    17:4,
-    18:3,
-    0:2
-  }
+colignyDate.prototype.calcDays = function(add) {
+  var output = new colignyDate(this.year, this.month.index, this.day,
+               this.metonic);
 
-  var satYearSet = {
-    1:0,
-    2:4,
-    3:3,
-    4:2,
-    0:1
-  }
+  output.day += add;
 
-  if (this.isMetonic) {
-    if (this.isEarly) {
-      var testDate = this.month.name + " " +
-                     this.day + " " + metYearSet[this.yearDiff % 19];
-      console.log(this.yearDiff % 19)
-      console.log(testDate);
-      return inscrips[testDate];
+  while (output.day > output.month.days) {
+    if (output.month.index === output.fullYear.months.length - 1) {
+      output = new colignyDate(output.year + 1, 0, 
+               output.day - output.month.days, output.metonic);
     } else {
-      var testDate = this.month.name + " " + 
-                     this.day + " " + (((this.yearDiff % 19) + 2) % 5);
-      console.log(this.yearDiff % 19)
-      console.log(testDate);
-      return inscrips[testDate];
+      output = new colignyDate(output.year, output.month.index + 1, 
+               output.day - output.month.days, output.metonic);
     }
+  }
+
+  while (output.day < 1) {
+    if (output.month.index === 0) {
+      var newLength = new colignyYear(output.year - 1,
+                      output.metonic).months.length;
+      output = new colignyDate(output.year - 1, newLength - 1, 
+               output.day + output.month.days, output.metonic);
+    } else {
+      output = new colignyDate(output.year, output.months.index - 1,
+               output.day + output.month.days, output.metonic);
+    }
+  }
+
+  return output;  
+}
+
+colignyDate.prototype.equals = function(target) {
+  if (this.metonic !== target.metonic) {
+    throw _colignyErrors["invalidCycles"];
+  }
+
+  if (this.year === target.year &&
+      this.month.index === target.month.index &&
+      this.day === target.day) {
+    return true;
   } else {
-    if (this.isEarly) {
-      var testDate = this.month.name + " " +
-                     this.day + " " + satYearSet[this.yearDiff % 5];
-      console.log(this.yearDiff % 5)
-      console.log(testDate);
-      return inscrips[testDate];
-    } else {
-      var testDate = this.month.name + " " +
-                     this.day + " " + ((this.yearDiff - 1) % 5);
-      console.log(this.yearDiff % 5)
-      console.log(testDate);
-      return inscrips[testDate];
-    }
+    return false;
   }
 }
 
-Date.prototype.toColignyDate = function(isMetonic) {
-  if (typeof isMetonic == "null") { isMetonic = false; }
-  if (isMetonic) {
-    var start = new Date(1999, 4, 22);
-    var endDate = new Date(this.getTime());
-    var timeDiff = Math.abs(endDate.getTime() - start.getTime());
-    var diff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+colignyDate.prototype.before = function(target) {
+  if (this.metonic !== target.metonic) {
+    throw _colignyErrors["invalidCycles"];
+  }
 
-    startColig = new colignyDate(4999, "Samonios", 1, true);
-    startColig.calcDays(diff);
-    return startColig;
+  if (this.equals(target)) {
+    return false;
+  } else if (this.year > target.year) {
+    return false;
+  } else if (this.year < target.year) {
+    return true;
+  } else if (this.month.index > target.month.index) {
+    return false;
+  } else if (this.month.index < target.month.index) {
+    return true;
+  } else if (this.day < target.day) {
+    return true;
   } else {
-    var start = new Date(1998, 4, 3);
-    var endDate = new Date(this.getTime());
-    var timeDiff = Math.abs(endDate.getTime() - start.getTime());
-    var diff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-    startColig = new colignyDate(4998, "Quimonios", 1);
-    startColig.calcDays(diff);
-    return startColig;
+    return false;
   }
 }
+
+colignyDate.prototype.difference = function(target) {
+  if (this.metonic !== target.metonic) {
+    throw _colignyErrors["invalidCycles"];
+  }
+
+  var count = 0;
+
+  if (this.equals(target)) {
+    return 0;
+  } else if (this.year === target.year &&
+             this.month.index === target.month.index) {
+    return Math.abs(this.day - target.day);
+  } else if (target.before(this)) {
+    return target.difference(this);
+  } else {
+    if (this.year === target.year) {
+      count += this.month.days - this.day + target.day;
+      for (i = this.month.index + 1; i < target.month.index; i++) {
+        count += this.fullYear.months[i].days;
+      }
+    } else {
+      count += this.yearToEnd + target.yearToBegin;
+      for (var i = this.year + 1; i < target.year; i++) {
+        var current = new colignyYear(i, this.metonic);
+        count += current.yearDays;
+      }
+    }
+  }
+  return count;
+}
+
+colignyDate.prototype.toGregorianDate = function() {
+  if (this.metonic) {
+    var start = new colignyDate(4999, 0, 1, true);
+    var gregDate = new Date(1999, 4, 22);
+  } else {
+    var start = new colignyDate(4998, 0, 1);
+    var gregDate = new Date(1998, 4, 3);
+  }
+
+  var change = this.difference(start);
+  var output = new Date(gregDate);
+
+  if (this.before(start)) {
+    output.setDate(output.getDate() - change);
+  } else {
+    output.setDate(output.getDate() + change);
+  }
+
+  return output;
+}
+
+Date.prototype.toColignyDate = function(metonic) {
+  if (metonic) {
+    var diff = Math.round((new Date(this) - new Date(1999, 4, 22)) / 8.64e7);
+    output = new colignyDate(4999, 0, 1, true);
+  } else {
+    var diff = Math.round((new Date(this) - new Date(1998, 4, 3)) / 8.64e7);
+    output = new colignyDate(4998, 0, 1);
+  }
+
+  return output.calcDays(diff);
+}
+
+
+
+
+
+
+
 
