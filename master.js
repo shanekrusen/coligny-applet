@@ -73,6 +73,16 @@ window.onload = function() {
     block.className = "calendar-block";
     document.getElementById("cal-body").appendChild(block);
   }
+
+  var menuStuff = function() {
+    var bar = document.getElementById("sidebar");
+    var shade = document.getElementById("shader");
+    bar.style.visibility = bar.style.visibility == "hidden" ? "visible" : "hidden";
+    shade.style.visibility = shade.style.visibility == "hidden" ? "visible" : "hidden";
+  }
+
+  document.getElementById("menu").onclick = menuStuff;
+  document.getElementById("shader").onclick = menuStuff; 
 };
 
 
