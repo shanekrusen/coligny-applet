@@ -23,7 +23,8 @@ if (!params('year') && !params('month')) {
 
 window.onload = function() {
   window.scrollTo(0, 1);
-  var obj = new colignyYear(Number(params('year')), Boolean(params('metonic')));
+  var obj = new colignyYear(Number(params('year')), Boolean(Number(params('metonic'))));
+  console.log(obj);
   document.getElementById('cal-title').textContent += obj.months[
                                                         params('month')].name
                                                       + " "
@@ -41,7 +42,7 @@ window.onload = function() {
   var weekday = monthStart.toGregorianDate().getDay();
   console.log(weekday);
   
-  for (var i = 0; i <= weekday; i++) {
+  for (var i = 0; i < weekday; i++) {
     var block = document.createElement("DIV");
     var space = document.createTextNode("-");
     var spaceTwo = document.createTextNode("---------------");
@@ -64,14 +65,19 @@ window.onload = function() {
                                   Number(params('month')),
                                   i,
                                   Boolean(params('metonic')));
-    var convert = document.createTextNode(
-                  convert.toGregorianDate().toISOString().substring(0, 10));
+    var greg = convert.toGregorianDate();
+    var now = new Date();
+    now.setHours(0,0,0,0);
+    var convert = document.createTextNode(greg.toISOString().substring(0, 10));
     var linebreak = document.createElement("BR");
     block.appendChild(space);
     small.appendChild(convert);
     block.appendChild(linebreak);
     block.appendChild(small)
     block.className = "calendar-block";
+    if (greg.getTime() === now.getTime()) {
+      block.className += " today";
+    }
     document.getElementById("cal-body").appendChild(block);
   }
 
@@ -82,8 +88,71 @@ window.onload = function() {
     shade.style.visibility = shade.style.visibility == "hidden" ? "visible" : "hidden";
   }
 
+  var dotMenu = function() {
+    var dots = document.getElementById("dot-menu");
+    var shade = document.getElementById("shader-two");
+    dots.style.visibility = dots.style.visibility == "hidden" ? "visible" : "hidden";
+    shade.style.visibility = shade.style.visibility == "hidden" ? "visible" : "hidden";
+  }
+
   document.getElementById("menu").onclick = menuStuff;
-  document.getElementById("shader").onclick = menuStuff; 
+  document.getElementById("shader").onclick = menuStuff;
+  document.getElementById("dots").onclick = dotMenu;
+  document.getElementById("shader-two").onclick = dotMenu;
+
+  document.getElementById('for').onclick = function() {
+    if (params('month') == obj.months.length - 1) {
+      document.location.search = '?year=' + (Number(params('year')) + 1) + 
+                                 '&month=' + 0 + 
+                                 '&metonic=' + params('metonic');
+    } else {
+      document.location.search = '?year=' + params('year') + 
+                                 '&month=' + (Number(params('month')) + 1) + 
+                                 '&metonic=' + params('metonic');
+    }
+  }
+
+  document.getElementById('back').onclick = function() {
+    if (params('month') == 0) {
+      var obj = new colignyYear(Number(params('year') - 1), 
+                                Boolean(Number(params('metonic'))));
+      document.location.search = '?year=' + (Number(params('year')) - 1) + 
+                                 '&month=' + (obj.months.length - 1) + 
+                                 '&metonic=' + params('metonic');
+    } else {
+      document.location.search = '?year=' + params('year') + 
+                                 '&month=' + (Number(params('month')) - 1) + 
+                                 '&metonic=' + params('metonic');
+    }
+  }
+
+  document.getElementById('home').onclick = function() {
+    document.location.search = "";
+  }
+  
+  var days = ["Sunday", "Monday", "Tuesday", 
+              "Wednesday", "Thursday", "Friday", "Saturday"]
+
+  var dateInfo = document.getElementById("date-info");
+  var today = new Date();
+  var todayDay = days[today.getDay()];
+  var todayText = document.createTextNode(todayDay);
+  var todayElem = document.createElement("h2")
+  todayElem.appendChild(todayText);
+  todayElem.style.fontWeight = "200";
+  dateInfo.appendChild(todayElem);
+  var todayColig = today.toColignyDate();
+  var todayColigText = todayColig.string() + " BG";
+  var todayColigNode = document.createTextNode(todayColigText);
+  var todayColigElem = document.createElement("H2");
+  todayColigElem.appendChild(todayColigNode);
+  dateInfo.appendChild(todayColigElem);
+  var timeText = today.getHours() + ":" + today.getMinutes();
+  var timeNode = document.createTextNode(timeText);
+  var timeElem = document.createElement("h3");
+  timeElem.appendChild(timeNode);
+  timeElem.style.fontWeight = "300";
+  dateInfo.appendChild(timeElem);
 };
 
 
