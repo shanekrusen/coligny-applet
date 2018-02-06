@@ -22,7 +22,6 @@ if (!params('year') && !params('month')) {
 }
 
 window.onload = function() {
-  window.scrollTo(0, 1);
   var obj = new colignyYear(Number(params('year')), Boolean(Number(params('metonic'))));
   console.log(obj);
   document.getElementById('cal-title').textContent += obj.months[
@@ -31,16 +30,13 @@ window.onload = function() {
                                                       + params('year')
                                                       + " BG";
 
- if (params('metonic') == 1) {
-    var monthStart = new colignyDate(
-                      Number(params('year')), Number(params('month')), 1, true);
-  } else {
-    var monthStart = new colignyDate(
-                      Number(params('year')), Number(params('month')), 1)
-  }
+  var monthStart = new colignyDate(
+                    Number(params('year')), 
+                    Number(params('month')), 1, 
+                    Boolean(Number(params('metonic'))));
+  console.log(monthStart);
 
   var weekday = monthStart.toGregorianDate().getDay();
-  console.log(weekday);
   
   for (var i = 0; i < weekday; i++) {
     var block = document.createElement("DIV");
@@ -64,11 +60,13 @@ window.onload = function() {
     var convert = new colignyDate(Number(params('year')), 
                                   Number(params('month')),
                                   i,
-                                  Boolean(params('metonic')));
+                                  Boolean(Number(params('metonic'))));
     var greg = convert.toGregorianDate();
     var now = new Date();
     now.setHours(0,0,0,0);
-    var convert = document.createTextNode(greg.toISOString().substring(0, 10));
+    var options = {year: "numeric", month: "short", day: "numeric"}
+    var convert = document.createTextNode(
+                    greg.toLocaleDateString("en-US", options));
     var linebreak = document.createElement("BR");
     block.appendChild(space);
     small.appendChild(convert);
@@ -147,12 +145,21 @@ window.onload = function() {
   var todayColigElem = document.createElement("H2");
   todayColigElem.appendChild(todayColigNode);
   dateInfo.appendChild(todayColigElem);
-  var timeText = today.getHours() + ":" + today.getMinutes();
+  var m = today.getMinutes() < 10 ? "0" + today.getMinutes() : today.getMinutes();
+  if (today.getHours() > 12) {
+    var timeText = (today.getHours() - 12) + ":" + m + "pm";
+  } else {
+    var timeText = today.getHours() + ":" + m + "am";
+  }
   var timeNode = document.createTextNode(timeText);
   var timeElem = document.createElement("h3");
   timeElem.appendChild(timeNode);
   timeElem.style.fontWeight = "300";
   dateInfo.appendChild(timeElem);
+
+  document.getElementsByClassName("calendar-block").onclcik = function() {
+    
+  }
 };
 
 
