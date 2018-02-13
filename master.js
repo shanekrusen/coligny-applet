@@ -21,9 +21,13 @@ if (!params('year') && !params('month')) {
                              '&month=' + date.month.index + '&metonic=1';
 }
 
+var notices = [];
+var errors = [];
+
 window.onload = function() {
+    
+
   var obj = new colignyYear(Number(params('year')), Boolean(Number(params('metonic'))));
-  console.log(obj);
   document.getElementById('cal-title').textContent += obj.months[
                                                         params('month')].name
                                                       + " "
@@ -34,7 +38,6 @@ window.onload = function() {
                     Number(params('year')), 
                     Number(params('month')), 1, 
                     Boolean(Number(params('metonic'))));
-  console.log(monthStart);
 
   var weekday = monthStart.toGregorianDate().getDay();
   
@@ -57,11 +60,11 @@ window.onload = function() {
     var block = document.createElement("DIV");
     var space = document.createTextNode(i);
     var small = document.createElement("SMALL");
-    var convert = new colignyDate(Number(params('year')), 
+    var colig = new colignyDate(Number(params('year')), 
                                   Number(params('month')),
                                   i,
                                   Boolean(Number(params('metonic'))));
-    var greg = convert.toGregorianDate();
+    var greg = colig.toGregorianDate();
     var now = new Date();
     now.setHours(0,0,0,0);
     var options = {year: "numeric", month: "short", day: "numeric"}
@@ -72,10 +75,17 @@ window.onload = function() {
     small.appendChild(convert);
     block.appendChild(linebreak);
     block.appendChild(small)
-    block.className = "calendar-block";
+    block.className = "calendar-block day";
     if (greg.getTime() === now.getTime()) {
       block.className += " today";
     }
+
+    for (var o = 0; o < colig.inscription().length; o++) {
+      if (colig.inscription()[o] == "IVOS") {
+        block.className += " ivos";
+      }
+    }
+
     document.getElementById("cal-body").appendChild(block);
   }
 
@@ -157,8 +167,63 @@ window.onload = function() {
   timeElem.style.fontWeight = "300";
   dateInfo.appendChild(timeElem);
 
-  document.getElementsByClassName("calendar-block").onclcik = function() {
-    
+  if (params('metonic') == 1) {
+    document.getElementById("metCheck").checked = true;
+  }
+
+  document.getElementById("metCheck").onclick = function() {
+    if (params('metonic') == 1) {
+      document.location.search = '?year=' + params('year') + 
+                                 '&month=' + params('month') + 
+                                 '&metonic=0';
+    } else {
+      document.location.search = '?year=' + params('year') + 
+                                 '&month=' + params('month') + 
+                                 '&metonic=1';
+    }
+  }
+
+  var dayObjs = document.getElementsByClassName('day');
+
+  for (var i = 0; i < dayObjs.length; i++) {
+    dayObjs[i].onclick = function() {
+      document.getElementById('day-text').innerHTML = "";
+      document.getElementById('day-show').style.visibility = "visible";
+      var day = this.innerText.replace(/\n.*$/m, "");
+      var showDate = new colignyDate(
+                      Number(params('year')), Number(params('month')),
+                      Number(day), Boolean(Number(params('metonic')))); 
+      var header = document.createElement("h1");
+      var headerText = document.createTextNode(showDate.string());
+      var inscrip = document.createElement("small");
+      var inscripString = "";
+      for (y = 0; y < showDate.inscription().length; y++) {
+        inscripString += y == 0 ? showDate.inscription()[y] : " " + 
+                                  showDate.inscription()[y]
+      }
+      var inscripText = document.createTextNode(inscripString);
+      inscrip.appendChild(inscripText);
+      header.appendChild(headerText);
+      document.getElementById('day-text').appendChild(header);
+      document.getElementById('day-text').appendChild(inscrip);
+    }
+  }
+
+  document.getElementById('day-close').onclick = function() {
+    document.getElementById('day-show').style.visibility = 'hidden';
+  }
+
+  document.getElementById('event-submit').onclick = function() {
+    var name = document.getElementById('event-name').value;
+    var duration = document.getElementById('event-days').value;
+    var eventStart = document.getElementById('event-start').value;
+    var eventEnd = document.getElementById('event-end').value;
+
+    if ((name || duration || eventStart || eventEnd) === "") {
+      console.log(true);
+      errors.push("Fields cannot be left blank!");
+      document.location.search = "";
+    }
   }
 };
 

@@ -89,6 +89,10 @@ body {
 	cursor:pointer;
 }
 
+.ivos {
+	border-top: 2px solid #2755a5;
+}
+
 .calendar-block:hover {
 	outline: 2px solid #5787d7;
 	z-index: 9996;
@@ -122,7 +126,7 @@ body {
 
 #dot-menu {
 	width: 50%;
-	height: 30%;
+	height: auto;
 	background-color: white;
 	z-index: 9998;
 	position: fixed;
@@ -130,6 +134,10 @@ body {
 	top: 50px;
 	border-radius: 0 0 0 5px;
 	box-shadow: -3px 3px 10px #000000;
+}
+
+#dot-menu h3 {
+	display: inline-block;
 }
 
 #sidebar {
@@ -183,3 +191,70 @@ body {
 .today {
 	background-color: #abc3eb;
 }
+
+#day-show {
+	position: fixed;
+	top: 0;
+	height: 100%;
+	width: 100%;
+	background-color: rgba(0,0,0,0.5);
+	display: flex;
+	align-items: center;
+	align-content: cneter;
+	justify-content: center;
+	z-index: 99999;
+}
+
+#day-modal {
+	height: 90%;
+	width: 90%;
+	background-color: white;
+	border-radius: 5px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	align-content: center;
+}
+
+#day-text {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	align-content: center;
+}
+
+#day-close {
+	cursor: pointer;
+	font-weight: bold;
+	font-size: 30px;
+	width: 95%;
+	text-align: right;
+	margin: 0px;
+	margin-right: 5px;
+}
+
+#event-form h2 {
+	text-align: center;
+}
+
+#event-submit {
+	border: 1px solid #5787d7;
+	border-radius: 5px;
+	background-color: white;
+	color: #5787d7;
+	padding: 5px;
+	cursor: pointer;
+}
+
+#event-submit:hover {
+	background-color: #5787d7;
+	color: white;
+}
+
+
+
+
+
+
+
+

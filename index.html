@@ -28,8 +28,9 @@
 		<div id="shader-two" style="visibility: hidden;"></div>
 
 		<div id="dot-menu" style="visibility: hidden;">
-
-		</div>		
+			<input id="metCheck" type="checkbox"></input>
+			<h3> Metonic Cycle</h3>
+		</div>	
 
 		<div class="body-wrapper">
 			<div class="cal-head">
@@ -62,6 +63,37 @@
 			</div>
 			<div id="cal-body">
 				
+			</div>
+		</div>
+
+		<div id="day-show" style="visibility: hidden;">
+			<div id="day-modal">
+				<h2 id="day-close">&#215;</h2>
+				<div id="day-text">
+				
+				</div>
+				<br />
+				<div id="event-form">
+					<h2>New Event</h2>
+					<br />
+					<label>Name</label>
+					<input type="text" id="event-name">
+					<br />
+					<br />
+					<label>Duration</label>
+					<input type="number" id="event-days"> days
+					<br />
+					<br />
+					<label>Start Time</label>
+					<input type="time" id="event-start">
+					<br />
+					<br />
+					<label>End Time</label>
+					<input type="time" id="event-end">
+					<br />
+					<br />
+					<input type="submit" value="Create Event" id="event-submit">
+				</div>
 			</div>
 		</div>
 	</body>
