@@ -81,8 +81,14 @@ window.onload = function() {
     }
 
     for (var o = 0; o < colig.inscription().length; o++) {
-      if (colig.inscription()[o] == "IVOS") {
+      if (colig.inscription()[o] == ("IVOS" || "(IVOS)")) {
         block.className += " ivos";
+      }
+    }
+
+    for (var o = 0; o < colig.inscription().length; o++) {
+      if (colig.inscription()[o].includes("TIOCOBREXTIO")) {
+        block.className += " tio";
       }
     }
 
@@ -219,10 +225,11 @@ window.onload = function() {
     var eventStart = document.getElementById('event-start').value;
     var eventEnd = document.getElementById('event-end').value;
 
-    if ((name || duration || eventStart || eventEnd) === "") {
-      console.log(true);
-      errors.push("Fields cannot be left blank!");
+    if ((name || duration || eventStart || eventEnd) == "") {
+      alert("Fields cannot be left blank!");
       document.location.search = "";
+    } else {
+      
     }
   }
 };

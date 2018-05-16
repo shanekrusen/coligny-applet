@@ -93,6 +93,10 @@ body {
 	border-top: 2px solid #2755a5;
 }
 
+.tio {
+	border-top: 2px solid #c63636;
+}
+
 .calendar-block:hover {
 	outline: 2px solid #5787d7;
 	z-index: 9996;
