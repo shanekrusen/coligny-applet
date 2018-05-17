@@ -1,6 +1,7 @@
 body {
 	margin: 0px;
 	padding: 0px;
+	height:100%;
 }
 
 .header {
@@ -42,7 +43,7 @@ body {
 	margin: 0px;
 	padding: 0px;
 	width: 100%;
-	height: 100vh;
+	height: 100%;
 	display: flex;
 	flex-direction: column;
 }
@@ -55,6 +56,7 @@ body {
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-around;
+	height: 30px;
 }
 
 .cal-head h2 {
@@ -70,22 +72,28 @@ body {
 	flex-grow: 1;
 }
 
+#cal-table {
+	width:100%;
+	height: calc(100% - 130px);
+	border-collapse: collapse;
+	border: 1px solid #d3d7cf;
+}
+
+#cal-table th, td {
+	border: 1px solid #d3d7cf;
+	margin: 0px;
+	border-collapse: collapse;
+}
+
 .cal-week {
 	width: 100%;
 	display: flex;
-	height: auto;
+	height: 50px;
 }
 
 .calendar-block {
-	max-width: 14.2857142857%;
-	min-width: 14.2857142857%;
 	margin:0px;
-	display: inline-block;
 	text-align: right;
-	min-height: 14%;
-	max-height: 14%;
-	padding: 0px;
-	outline: 1px solid #f0f0f0;
 	cursor:pointer;
 }
 

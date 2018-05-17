@@ -41,23 +41,86 @@ window.onload = function() {
 
   var weekday = monthStart.toGregorianDate().getDay();
   
+//  for (var i = 0; i < weekday; i++) {
+//    var block = document.createElement("DIV");
+//    var space = document.createTextNode("-");
+//    var spaceTwo = document.createTextNode("---------------");
+//    var linebreak = document.createElement("BR");
+//    var small = document.createElement("small");
+//    block.appendChild(space);
+//    block.appendChild(linebreak);
+//    small.appendChild(spaceTwo);
+//    small.style.color = "white";
+//    block.appendChild(small);
+//    block.className = "calendar-block";
+//    document.getElementById("cal-body").appendChild(block);
+//  }
+//
+//  for (var i = 1; i <= obj.months[Number(params('month'))].days; i++) {
+//    var block = document.createElement("DIV");
+//    var space = document.createTextNode(i);
+//    var small = document.createElement("SMALL");
+//    var colig = new colignyDate(Number(params('year')), 
+//                                  Number(params('month')),
+//                                  i,
+//                                  Boolean(Number(params('metonic'))));
+//    var greg = colig.toGregorianDate();
+//    var now = new Date();
+//    now.setHours(0,0,0,0);
+//    var options = {year: "numeric", month: "short", day: "numeric"}
+//    var convert = document.createTextNode(
+//                    greg.toLocaleDateString("en-US", options));
+//    var linebreak = document.createElement("BR");
+//    block.appendChild(space);
+//    small.appendChild(convert);
+//    block.appendChild(linebreak);
+//    block.appendChild(small)
+//    block.className = "calendar-block day";
+//    if (greg.getTime() === now.getTime()) {
+//      block.className += " today";
+//    }
+
+//    for (var o = 0; o < colig.inscription().length; o++) {
+//      if (colig.inscription()[o] == ("IVOS" || "(IVOS)")) {
+//        block.className += " ivos";
+//      }
+//    }
+
+//    for (var o = 0; o < colig.inscription().length; o++) {
+//      if (colig.inscription()[o].includes("TIOCOBREXTIO")) {
+//        block.className += " tio";
+//      }
+//    }
+
+//    document.getElementById("cal-body").appendChild(block);
+//  }
+
+//  var blockTotal = document.getElementsByClassName("calendar-block").length;
+//  var left = 42 - blockTotal;
+
+//  for (var i = 0; i < left; i++) {
+//    var block = document.createElement("DIV");
+//    var space = document.createTextNode("-");
+//    var spaceTwo = document.createTextNode("---------------");
+//    var linebreak = document.createElement("BR");
+//    var small = document.createElement("small");
+//    block.appendChild(space);
+//    block.appendChild(linebreak);
+//    small.appendChild(spaceTwo);
+//    small.style.color = "white";
+//    block.appendChild(small);
+//    block.className = "calendar-block";
+//    document.getElementById("cal-body").appendChild(block);
+//  }
+
   for (var i = 0; i < weekday; i++) {
-    var block = document.createElement("DIV");
-    var space = document.createTextNode("-");
-    var spaceTwo = document.createTextNode("---------------");
-    var linebreak = document.createElement("BR");
-    var small = document.createElement("small");
-    block.appendChild(space);
-    block.appendChild(linebreak);
-    small.appendChild(spaceTwo);
-    small.style.color = "white";
-    block.appendChild(small);
-    block.className = "calendar-block";
-    document.getElementById("cal-body").appendChild(block);
+    var x = document.getElementById("table-1").insertCell(-1);
+    x.innerHTML = "-"
+    x.className = "calendar-block";
   }
 
   for (var i = 1; i <= obj.months[Number(params('month'))].days; i++) {
-    var block = document.createElement("DIV");
+    var block = document.createElement("th");
     var space = document.createTextNode(i);
     var small = document.createElement("SMALL");
     var colig = new colignyDate(Number(params('year')), 
@@ -75,42 +138,50 @@ window.onload = function() {
     small.appendChild(convert);
     block.appendChild(linebreak);
     block.appendChild(small)
-    block.className = "calendar-block day";
-    if (greg.getTime() === now.getTime()) {
-      block.className += " today";
-    }
+    
+    for (var o = 1; o <= 6; o++) {
+      if (document.getElementById("table-" + o).childElementCount < 7) {
+        var x = document.getElementById("table-" + o).insertCell(-1)
+        x.innerHTML = block.innerHTML;
+        x.className = "calendar-block day";
 
-    for (var o = 0; o < colig.inscription().length; o++) {
-      if (colig.inscription()[o] == ("IVOS" || "(IVOS)")) {
-        block.className += " ivos";
+        if (greg.getTime() === now.getTime()) {
+          x.className += " today";
+        }
+
+        for (var o = 0; o < colig.inscription().length; o++) {
+          if (colig.inscription()[o] == ("IVOS" || "(IVOS)")) {
+            x.className += " ivos";
+          }
+        }
+
+        for (var o = 0; o < colig.inscription().length; o++) {
+          if (colig.inscription()[o].includes("TIOCOBREXTIO")) {
+            x.className += " tio";
+          }
+        }
+
+        break;
       }
     }
-
-    for (var o = 0; o < colig.inscription().length; o++) {
-      if (colig.inscription()[o].includes("TIOCOBREXTIO")) {
-        block.className += " tio";
-      }
-    }
-
-    document.getElementById("cal-body").appendChild(block);
   }
 
   var blockTotal = document.getElementsByClassName("calendar-block").length;
   var left = 42 - blockTotal;
+  
+  console.log(left);
 
-  for (var i = 0; i < left; i++) {
-    var block = document.createElement("DIV");
-    var space = document.createTextNode("-");
-    var spaceTwo = document.createTextNode("---------------");
-    var linebreak = document.createElement("BR");
-    var small = document.createElement("small");
-    block.appendChild(space);
-    block.appendChild(linebreak);
-    small.appendChild(spaceTwo);
-    small.style.color = "white";
-    block.appendChild(small);
-    block.className = "calendar-block";
-    document.getElementById("cal-body").appendChild(block);
+  five = document.getElementById("table-5");
+  six = document.getElementById("table-6");
+  
+  for (let o = 0; o < left; o++) {
+    if (five.childElementCount < 7) {
+      var y = five.insertCell(-1);
+    } else {
+      var y = six.insertCell(-1);
+    }
+    y.innerHTML = "-";
+    y.className = "calendar-block";
   }
 
   var menuStuff = function() {
