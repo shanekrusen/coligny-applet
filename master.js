@@ -96,7 +96,7 @@ window.onload = function() {
   }
 
   var blockTotal = document.getElementsByClassName("calendar-block").length;
-  var left = 35 - blockTotal;
+  var left = 42 - blockTotal;
 
   for (var i = 0; i < left; i++) {
     var block = document.createElement("DIV");
