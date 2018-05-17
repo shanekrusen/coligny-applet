@@ -82,11 +82,12 @@ body {
 	margin:0px;
 	display: inline-block;
 	text-align: right;
-	min-height: 12.666666666666668%;
-	max-height: 12.666666666666668%;
+	min-height: 16.66666666%;
+	max-height: 16.66666666%;
 	padding: 0px;
 	outline: 1px solid #f0f0f0;
 	cursor:pointer;
+	flex-grow: 1;
 }
 
 .ivos {

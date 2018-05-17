@@ -95,6 +95,24 @@ window.onload = function() {
     document.getElementById("cal-body").appendChild(block);
   }
 
+  var blockTotal = document.getElementsByClassName("calendar-block").length;
+  var left = 35 - blockTotal;
+
+  for (var i = 0; i < left; i++) {
+    var block = document.createElement("DIV");
+    var space = document.createTextNode("-");
+    var spaceTwo = document.createTextNode("---------------");
+    var linebreak = document.createElement("BR");
+    var small = document.createElement("small");
+    block.appendChild(space);
+    block.appendChild(linebreak);
+    small.appendChild(spaceTwo);
+    small.style.color = "white";
+    block.appendChild(small);
+    block.className = "calendar-block";
+    document.getElementById("cal-body").appendChild(block);
+  }
+
   var menuStuff = function() {
     var bar = document.getElementById("sidebar");
     var shade = document.getElementById("shader");
