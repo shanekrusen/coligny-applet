@@ -94,13 +94,17 @@ window.onload = function() {
     }
   }
 
-  var blockTotal = document.getElementsByClassName("calendar-block").length;
-  var left = 42 - blockTotal;
-  
-  console.log(left);
+  var blockTotal = document.getElementsByClassName("calendar-block").length;  
 
   five = document.getElementById("table-5");
   six = document.getElementById("table-6");
+
+  if (six.childElementCount == 0) {
+    document.getElementById("cal-table").deleteRow(-1);
+    var left = 35 - blockTotal;
+  } else {
+    var left = 42 - blockTotal;
+  }
   
   for (let o = 0; o < left; o++) {
     if (five.childElementCount < 7) {
