@@ -100,6 +100,7 @@ var popCal = function() {
       var showDate = new colignyDate(globalYear, globalMonth, Number(day),
                                                               globalMet); 
       var header = document.createElement("h1");
+      header.id = "day-head";
       var headerText = document.createTextNode(showDate.string());
       var inscrip = document.createElement("small");
       var inscripString = "";
@@ -116,8 +117,17 @@ var popCal = function() {
   }
 }
 
-var notices = [];
-var errors = [];
+var resetCal = function() {
+  document.getElementById("cal-title").innerHTML = '';
+  document.getElementById("cal-table").innerHTML = "<tr id='table-1'>"
+                                                   + "</tr><tr id='table-2'>"
+                                                   + "</tr><tr id='table-3'>"
+                                                   + "</tr><tr id='table-4'>"
+                                                   + "</tr><tr id='table-5'>"
+                                                   + "</tr><tr id='table-6'>"
+                                                   + "</tr>"
+  popCal();
+}
 
 window.onload = function() {
   popCal();
@@ -148,9 +158,7 @@ window.onload = function() {
     } else {
       globalMonth = globalMonth + 1;
     }
-    document.getElementById("cal-title").innerHTML = '';
-    document.getElementById("cal-table").innerHTML = "<tr id='table-1'></tr><tr id='table-2'></tr><tr id='table-3'></tr><tr id='table-4'></tr><tr id='table-5'></tr><tr id='table-6'></tr>"
-    popCal();
+    resetCal();
   }
 
   document.getElementById('back').onclick = function() {
@@ -161,18 +169,13 @@ window.onload = function() {
     } else {
       globalMonth = globalMonth - 1;
     }
-    document.getElementById("cal-title").innerHTML = '';
-    document.getElementById("cal-table").innerHTML = "<tr id='table-1'></tr><tr id='table-2'></tr><tr id='table-3'></tr><tr id='table-4'></tr><tr id='table-5'></tr><tr id='table-6'></tr>"
-    popCal();
+    resetCal();
   }
 
   document.getElementById('home').onclick = function() {
-    console.log(globalYear + " " + globalMonth);
     globalMonth = date.month.index;
     globalYear = date.year;
-    document.getElementById("cal-title").innerHTML = '';
-    document.getElementById("cal-table").innerHTML = "<tr id='table-1'></tr><tr id='table-2'></tr><tr id='table-3'></tr><tr id='table-4'></tr><tr id='table-5'></tr><tr id='table-6'></tr>"
-    popCal();
+    resetCal();
   }
   
   var days = ["Sunday", "Monday", "Tuesday", 
@@ -214,7 +217,7 @@ window.onload = function() {
     } else {
       globalMet = true;
     }
-    popCal();
+    resetCal();
   }
 
   document.getElementById('day-close').onclick = function() {
@@ -230,7 +233,18 @@ window.onload = function() {
     if ((name || duration || eventStart || eventEnd) == "") {
       alert("Fields cannot be left blank!");
     } else {
-      
+      var event = { 'name' : name, 
+                    'duration' : duration, 
+                    'eventStart' : eventStart,
+                    'eventEnd' : eventEnd };
+      var day = document.getElementById("day-head").innerText;
+      day = day.split(/, | /);
+      day[0] = globalMonth;
+      day = day.join('.');
+      var cookString = day + "=" + JSON.stringify(event) + ";";
+      console.log(cookString);
+      document.cookie = cookString;
+      document.getElementById('day-show').style.visibility = 'hidden';
     }
   }
 };
