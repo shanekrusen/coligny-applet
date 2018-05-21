@@ -1,43 +1,20 @@
-var params = function params(sParam) {
-  var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-    sURLVariables = sPageURL.split('&'),
-    sParameterName,
-    i;
-
-  for (i = 0; i < sURLVariables.length; i++) {
-    sParameterName = sURLVariables[i].split('=');
-
-    if (sParameterName[0] === sParam) {
-        return sParameterName[1] === undefined ? true : sParameterName[1];
-    }
-  }
-};
-
-if (!params('year') && !params('month')) {
-  var date = new Date();
+var date = new Date();
   date.setHours(0,0,0,0);
   date = date.toColignyDate(true);
-  document.location.search = '?year=' + date.year + 
-                             '&month=' + date.month.index + '&metonic=1';
-}
+var globalMonth = date.month.index;
+var globalYear = date.year;
+var globalMet = true;
+var obj = new colignyYear(globalYear, globalMet);
 
-var notices = [];
-var errors = [];
-
-window.onload = function() {
-    
-
-  var obj = new colignyYear(Number(params('year')), Boolean(Number(params('metonic'))));
+var popCal = function() {
+  obj = new colignyYear(globalYear, globalMet);
   document.getElementById('cal-title').textContent += obj.months[
-                                                        params('month')].name
+                                                        globalMonth].name
                                                       + " "
-                                                      + params('year')
+                                                      + globalYear
                                                       + " BG";
 
-  var monthStart = new colignyDate(
-                    Number(params('year')), 
-                    Number(params('month')), 1, 
-                    Boolean(Number(params('metonic'))));
+  var monthStart = new colignyDate(globalYear, globalMonth, 1, globalMet);
 
   var weekday = monthStart.toGregorianDate().getDay();
 
@@ -47,14 +24,11 @@ window.onload = function() {
     x.className = "calendar-block";
   }
 
-  for (var i = 1; i <= obj.months[Number(params('month'))].days; i++) {
+  for (var i = 1; i <= obj.months[globalMonth].days; i++) {
     var block = document.createElement("th");
     var space = document.createTextNode(i);
     var small = document.createElement("SMALL");
-    var colig = new colignyDate(Number(params('year')), 
-                                  Number(params('month')),
-                                  i,
-                                  Boolean(Number(params('metonic'))));
+    var colig = new colignyDate(globalYear, globalMonth, i, globalMet);
     var greg = colig.toGregorianDate();
     var now = new Date();
     now.setHours(0,0,0,0);
@@ -116,6 +90,38 @@ window.onload = function() {
     y.className = "calendar-block";
   }
 
+  var dayObjs = document.getElementsByClassName('day');
+
+  for (var i = 0; i < dayObjs.length; i++) {
+    dayObjs[i].onclick = function() {
+      document.getElementById('day-text').innerHTML = "";
+      document.getElementById('day-show').style.visibility = "visible";
+      var day = this.innerText.replace(/\n.*$/m, "");
+      var showDate = new colignyDate(globalYear, globalMonth, Number(day),
+                                                              globalMet); 
+      var header = document.createElement("h1");
+      var headerText = document.createTextNode(showDate.string());
+      var inscrip = document.createElement("small");
+      var inscripString = "";
+      for (y = 0; y < showDate.inscription().length; y++) {
+        inscripString += y == 0 ? showDate.inscription()[y] : " " + 
+                                  showDate.inscription()[y]
+      }
+      var inscripText = document.createTextNode(inscripString);
+      inscrip.appendChild(inscripText);
+      header.appendChild(headerText);
+      document.getElementById('day-text').appendChild(header);
+      document.getElementById('day-text').appendChild(inscrip);
+    }
+  }
+}
+
+var notices = [];
+var errors = [];
+
+window.onload = function() {
+  popCal();
+    
   var menuStuff = function() {
     var bar = document.getElementById("sidebar");
     var shade = document.getElementById("shader");
@@ -136,33 +142,37 @@ window.onload = function() {
   document.getElementById("shader-two").onclick = dotMenu;
 
   document.getElementById('for').onclick = function() {
-    if (params('month') == obj.months.length - 1) {
-      document.location.search = '?year=' + (Number(params('year')) + 1) + 
-                                 '&month=' + 0 + 
-                                 '&metonic=' + params('metonic');
+    if (globalMonth == obj.months.length - 1) {
+      globalYear = globalYear + 1;
+      globalMonth = 0;
     } else {
-      document.location.search = '?year=' + params('year') + 
-                                 '&month=' + (Number(params('month')) + 1) + 
-                                 '&metonic=' + params('metonic');
+      globalMonth = globalMonth + 1;
     }
+    document.getElementById("cal-title").innerHTML = '';
+    document.getElementById("cal-table").innerHTML = "<tr id='table-1'></tr><tr id='table-2'></tr><tr id='table-3'></tr><tr id='table-4'></tr><tr id='table-5'></tr><tr id='table-6'></tr>"
+    popCal();
   }
 
   document.getElementById('back').onclick = function() {
-    if (params('month') == 0) {
-      var obj = new colignyYear(Number(params('year') - 1), 
-                                Boolean(Number(params('metonic'))));
-      document.location.search = '?year=' + (Number(params('year')) - 1) + 
-                                 '&month=' + (obj.months.length - 1) + 
-                                 '&metonic=' + params('metonic');
+    if (globalMonth == 0) {
+      obj = new colignyYear(globalYear - 1, globalMet);
+      globalYear = globalYear - 1;
+      globalMonth = obj.months.length - 1;
     } else {
-      document.location.search = '?year=' + params('year') + 
-                                 '&month=' + (Number(params('month')) - 1) + 
-                                 '&metonic=' + params('metonic');
+      globalMonth = globalMonth - 1;
     }
+    document.getElementById("cal-title").innerHTML = '';
+    document.getElementById("cal-table").innerHTML = "<tr id='table-1'></tr><tr id='table-2'></tr><tr id='table-3'></tr><tr id='table-4'></tr><tr id='table-5'></tr><tr id='table-6'></tr>"
+    popCal();
   }
 
   document.getElementById('home').onclick = function() {
-    document.location.search = "";
+    console.log(globalYear + " " + globalMonth);
+    globalMonth = date.month.index;
+    globalYear = date.year;
+    document.getElementById("cal-title").innerHTML = '';
+    document.getElementById("cal-table").innerHTML = "<tr id='table-1'></tr><tr id='table-2'></tr><tr id='table-3'></tr><tr id='table-4'></tr><tr id='table-5'></tr><tr id='table-6'></tr>"
+    popCal();
   }
   
   var days = ["Sunday", "Monday", "Tuesday", 
@@ -194,46 +204,17 @@ window.onload = function() {
   timeElem.style.fontWeight = "300";
   dateInfo.appendChild(timeElem);
 
-  if (params('metonic') == 1) {
+  if (globalMet == true) {
     document.getElementById("metCheck").checked = true;
   }
 
   document.getElementById("metCheck").onclick = function() {
-    if (params('metonic') == 1) {
-      document.location.search = '?year=' + params('year') + 
-                                 '&month=' + params('month') + 
-                                 '&metonic=0';
+    if (globalMet == true) {
+      globalMet = false;
     } else {
-      document.location.search = '?year=' + params('year') + 
-                                 '&month=' + params('month') + 
-                                 '&metonic=1';
+      globalMet = true;
     }
-  }
-
-  var dayObjs = document.getElementsByClassName('day');
-
-  for (var i = 0; i < dayObjs.length; i++) {
-    dayObjs[i].onclick = function() {
-      document.getElementById('day-text').innerHTML = "";
-      document.getElementById('day-show').style.visibility = "visible";
-      var day = this.innerText.replace(/\n.*$/m, "");
-      var showDate = new colignyDate(
-                      Number(params('year')), Number(params('month')),
-                      Number(day), Boolean(Number(params('metonic')))); 
-      var header = document.createElement("h1");
-      var headerText = document.createTextNode(showDate.string());
-      var inscrip = document.createElement("small");
-      var inscripString = "";
-      for (y = 0; y < showDate.inscription().length; y++) {
-        inscripString += y == 0 ? showDate.inscription()[y] : " " + 
-                                  showDate.inscription()[y]
-      }
-      var inscripText = document.createTextNode(inscripString);
-      inscrip.appendChild(inscripText);
-      header.appendChild(headerText);
-      document.getElementById('day-text').appendChild(header);
-      document.getElementById('day-text').appendChild(inscrip);
-    }
+    popCal();
   }
 
   document.getElementById('day-close').onclick = function() {
@@ -248,7 +229,6 @@ window.onload = function() {
 
     if ((name || duration || eventStart || eventEnd) == "") {
       alert("Fields cannot be left blank!");
-      document.location.search = "";
     } else {
       
     }
