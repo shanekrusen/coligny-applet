@@ -63,6 +63,12 @@ var popCal = function() {
           }
         }
 
+        for (var o = 0; o < colig.inscription().length; o++) {
+          if (colig.inscription()[o].includes("DEC/VOR LUG RIV" || "DEC/VOR LUG RIVRI")) {
+            x.className += " lug";
+          }
+        }
+
         break;
       }
     }
@@ -189,10 +195,11 @@ window.onload = function() {
   todayElem.appendChild(todayText);
   todayElem.style.fontWeight = "200";
   dateInfo.appendChild(todayElem);
-  var todayColig = today.toColignyDate();
+  var todayColig = today.toColignyDate(globalMet);
   var todayColigText = todayColig.string() + " BG";
   var todayColigNode = document.createTextNode(todayColigText);
-  var todayColigElem = document.createElement("H2");
+  var todayColigElem = document.createElement("H2");  
+  todayColigElem.id = "today-colig-elem";
   todayColigElem.appendChild(todayColigNode);
   dateInfo.appendChild(todayColigElem);
   var m = today.getMinutes() < 10 ? "0" + today.getMinutes() : today.getMinutes();
@@ -217,6 +224,8 @@ window.onload = function() {
     } else {
       globalMet = true;
     }
+    var todayColigNew = today.toColignyDate(globalMet).string() + " BG";
+    document.getElementById('today-colig-elem').innerText = todayColigNew;
     resetCal();
   }
 
@@ -246,6 +255,12 @@ window.onload = function() {
       document.cookie = cookString;
       document.getElementById('day-show').style.visibility = 'hidden';
     }
+  }
+
+  document.getElementById('jump-year').defaultValue = globalYear;
+  document.getElementById('submit-jump').onclick = function() {
+    globalYear = Number(document.getElementById('jump-year').value);
+    resetCal();
   }
 };
 
