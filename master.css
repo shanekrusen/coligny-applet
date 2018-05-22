@@ -141,7 +141,7 @@ body {
 }
 
 #dot-menu {
-	width: 50%;
+	width: auto;
 	height: auto;
 	background-color: white;
 	z-index: 9998;
