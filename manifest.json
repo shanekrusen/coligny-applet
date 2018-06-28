@@ -1,0 +1,20 @@
+{
+  "short_name": "Coligny",
+  "name": "Coligny Planner",
+  "icons": [
+    {
+      "src": "/assets/images/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/assets/images/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#5787d7",
+  "display": "standalone",
+  "theme_color": "#5787d7"
+}
