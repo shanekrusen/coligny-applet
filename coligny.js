@@ -16,6 +16,11 @@ function colignyMonth(name, days) {
   this.name = name;
   this.days = days;
   this.index = 0;
+  if (this.days === 30) {
+    this.omen = "MAT";
+  } else {
+    this.omen = "ANM";
+  }
 }
 
 function colignyYear(year, metonic) {
@@ -414,7 +419,7 @@ colignyDate.prototype.inscription = function() {
     "Giamonios 6 1":["D"],
     "Giamonios 7 1":["MD SIMIU TIOCOBREXTIO"],
     "Giamonios 8 1":["MD SIMIUISONNA"],
-    "Giamonios 9 1":["MD SIMIU SINDIU", "IVOS"],
+    "Giamonios 9 1":["MD SIMIU SINDIU IVOS"],
     "Giamonios 10 1":["D"],
     "Giamonios 11 1":["D AMB"],
     "Giamonios 12 1":["D"],
@@ -519,7 +524,7 @@ colignyDate.prototype.inscription = function() {
     "Elembi 22 1":["D EDRIN AMB"],
     "Elembi 23 1":["MD EDRINI"],
     "Elembi 24 1":["D AMB EDRINI"],
-    "Elembi 25 1":["D SINDIV", "IVOS"],
+    "Elembi 25 1":["D SINDIV IVOS"],
     "Elembi 26 1":["D AMB"],
     "Elembi 27 1":["TII D"],
     "Elembi 28 1":["ITI D AMB"],
@@ -1257,7 +1262,7 @@ colignyDate.prototype.inscription = function() {
     "Elembi 22 3":["D EDRIN AMB"],
     "Elembi 23 3":["MD EDRINI"],
     "Elembi 24 3":["TII D AMB EDRINI"],
-    "Elembi 25 3":["D SINDIU", "IVOS"],
+    "Elembi 25 3":["D SINDIU IVOS"],
     "Elembi 26 3":["D AMB"],
     "Elembi 27 3":["D"],
     "Elembi 28 3":["D AMB"],
@@ -1995,7 +2000,7 @@ colignyDate.prototype.inscription = function() {
     "Aedrinni 22 5":["D AMB"],
     "Aedrinni 23 5":["MD"],
     "Aedrinni 24 5":["D AMB"],
-    "Aedrinni 25 5":["MD SINDIV", "IVOS"],
+    "Aedrinni 25 5":["MD SINDIV IVOS"],
     "Aedrinni 26 5":["D AMB"],
     "Aedrinni 27 5":["MD"],
     "Aedrinni 28 5":["D AMB"],
@@ -2155,6 +2160,9 @@ colignyDate.prototype.toGregorianDate = function() {
 
 Date.prototype.toColignyDate = function(metonic) {
   var out = new Date(this)
+  if (out.getHours >= 6) {
+    var tomorrow = true;   
+  }
   out.setHours(0,0,0,0);
   if (metonic) {
     var diff = Math.round((out - new Date(1999, 4, 22)) / 8.64e7);
@@ -2163,8 +2171,12 @@ Date.prototype.toColignyDate = function(metonic) {
     var diff = Math.round((out - new Date(1998, 4, 3)) / 8.64e7);
     output = new colignyDate(4998, 0, 1);
   }
-
-  return output.calcDays(diff);
+    
+  if (tomorrow === true) {
+    return output.calcDays(diff + 1); 
+  } else {
+    return output.calcDays(diff);  
+  }
 }
 
 

@@ -1,4 +1,4 @@
-const LATEST_CACHE_ID = 'v1';
+const LATEST_CACHE_ID = 'v2';
 
 self.addEventListener('install', function(e) {
   e.waitUntil(
